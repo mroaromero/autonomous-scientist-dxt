@@ -1,0 +1,22 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="32" cy="32" r="32" fill="#2E7D9A"/>
+  
+  <!-- Book/Research symbol -->
+  <rect x="16" y="18" width="32" height="28" rx="2" fill="#FFFFFF" stroke="#2E7D9A" stroke-width="2"/>
+  <rect x="20" y="22" width="24" height="20" fill="#F0F8FF"/>
+  
+  <!-- Pages/lines representing text -->
+  <line x1="22" y1="26" x2="42" y2="26" stroke="#2E7D9A" stroke-width="1"/>
+  <line x1="22" y1="30" x2="38" y2="30" stroke="#2E7D9A" stroke-width="1"/>
+  <line x1="22" y1="34" x2="40" y2="34" stroke="#2E7D9A" stroke-width="1"/>
+  <line x1="22" y1="38" x2="36" y2="38" stroke="#2E7D9A" stroke-width="1"/>
+  
+  <!-- Magnifying glass for research -->
+  <circle cx="42" cy="20" r="6" fill="none" stroke="#FFD700" stroke-width="2"/>
+  <line x1="46" y1="24" x2="50" y2="28" stroke="#FFD700" stroke-width="2"/>
+  
+  <!-- Small academic cap -->
+  <path d="M28 12 L36 12 L34 8 L30 8 Z" fill="#FFD700"/>
+  <ellipse cx="32" cy="12" rx="6" ry="2" fill="#FFD700"/>
+</svg>

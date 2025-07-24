@@ -1,0 +1,48 @@
+{
+  "name": "autonomous-scientist-extension",
+  "version": "6.0.0",
+  "description": "Autonomous Research System for Social Sciences and Humanities - Claude Desktop Extension",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "echo 'Using JavaScript files directly'",
+    "dev": "node server/index.js",
+    "start": "node server/index.js",
+    "test": "echo 'Tests not configured'",
+    "lint": "echo 'Linting disabled for now'",
+    "pack": "echo 'Packing extension...' && echo 'Note: Install @anthropic-ai/dxt globally first: npm install -g @anthropic-ai/dxt'",
+    "install-cli": "npm install -g @anthropic-ai/dxt",
+    "prepare-dxt": "npm run build && npm run pack"
+  },
+  "keywords": [
+    "research",
+    "academic",
+    "social-sciences",
+    "humanities",
+    "mcp",
+    "claude",
+    "ocr",
+    "latex",
+    "desktop-extension"
+  ],
+  "author": "Manuel Roa",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.5.0",
+    "tesseract.js": "^5.0.0",
+    "pdf-parse": "^1.1.1",
+    "axios": "^1.6.0",
+    "fs-extra": "^11.0.0",
+    "crypto-js": "^4.2.0",
+    "node-cache": "^5.1.2",
+    "sharp": "^0.33.0",
+    "jimp": "^0.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/fs-extra": "^11.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
