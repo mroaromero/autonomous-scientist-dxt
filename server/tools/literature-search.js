@@ -1,56 +1,15 @@
-import axios from 'axios';
-import { SecurityManager } from '../utils/security';
-import { CacheManager } from '../utils/cache-manager';
+const axios = require('axios');
+const { SecurityManager } = require('../utils/security.js');
+const { CacheManager } = require('../utils/cache-manager.js');
 
-interface LiteratureSearchOptions {
-  query: string;
-  discipline?: string;
-  date_range?: {
-    start_year?: number;
-    end_year?: number;
-  };
-  max_results?: number;
-  sources?: string[];
-}
 
-interface SearchResult {
-  id: string;
-  title: string;
-  authors: string[];
-  year: number;
-  abstract?: string;
-  journal?: string;
-  doi?: string;
-  url?: string;
-  citation_count?: number;
-  pdf_url?: string;
-  source: string;
-  relevance_score?: number;
-}
-
-interface ComprehensiveSearchResult {
-  query: string;
-  total_results: number;
-  results_by_source: {
-    semantic_scholar: SearchResult[];
-    arxiv: SearchResult[];
-    crossref: SearchResult[];
-  };
-  combined_results: SearchResult[];
-  search_time: number;
-  recommendations: string[];
-}
-
-export class LiteratureSearchManager {
-  private securityManager: SecurityManager;
-  private cacheManager: CacheManager;
-  
-  constructor(cacheManager: CacheManager) {
+class LiteratureSearchManager {
+  constructor(cacheManager) {
     this.securityManager = new SecurityManager();
     this.cacheManager = cacheManager;
   }
 
-  async searchLiterature(options: LiteratureSearchOptions): Promise<ComprehensiveSearchResult> {
+  async searchLiterature(options) {
     const startTime = Date.now();
     const { query, discipline, date_range, max_results = 50, sources = ['semantic_scholar', 'arxiv', 'crossref'] } = options;
 
@@ -64,7 +23,7 @@ export class LiteratureSearchManager {
       return cachedResult;
     }
 
-    const result: ComprehensiveSearchResult = {
+    const result = {
       query,
       total_results: 0,
       results_by_source: {
@@ -150,7 +109,7 @@ export class LiteratureSearchManager {
     }
   }
 
-  private async searchSemanticScholar(query: string, maxResults: number, dateRange?: any): Promise<SearchResult[]> {
+  async searchSemanticScholar(query, maxResults, dateRange) {
     try {
       const apiKey = await this.securityManager.retrieveAPIKey('semantic_scholar');
       const headers: any = {
@@ -178,7 +137,7 @@ export class LiteratureSearchManager {
         timeout: 30000
       });
 
-      const results = response.data.data.map((paper: any) => ({
+      const results = response.data.data.map((paper) => ({
         id: paper.paperId,
         title: paper.title || 'Untitled',
         authors: paper.authors?.map((a: any) => a.name) || ['Unknown'],
@@ -204,7 +163,7 @@ export class LiteratureSearchManager {
 
       return results;
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('Semantic Scholar search error:', error.message);
       if (error.response?.status === 429) {
         throw new Error('Semantic Scholar rate limit exceeded. Please try again later.');
@@ -213,7 +172,7 @@ export class LiteratureSearchManager {
     }
   }
 
-  private async enrichWithRecommendations(topPapers: SearchResult[], headers: any): Promise<void> {
+  async enrichWithRecommendations(topPapers, headers) {
     try {
       // Get recommendations for the most relevant paper
       const topPaper = topPapers[0];
@@ -237,7 +196,7 @@ export class LiteratureSearchManager {
     }
   }
 
-  private async searchArXiv(query: string, maxResults: number, dateRange?: any): Promise<SearchResult[]> {
+  async searchArXiv(query, maxResults, dateRange) {
     try {
       // ArXiv API query construction
       let searchQuery = `all:${encodeURIComponent(query)}`;
@@ -266,7 +225,7 @@ export class LiteratureSearchManager {
       // Parse XML response (simplified)
       const results = this.parseArXivXML(response.data);
       
-      return results.map((paper: any) => ({
+      return results.map((paper) => ({
         id: paper.id,
         title: paper.title,
         authors: paper.authors,
@@ -280,13 +239,13 @@ export class LiteratureSearchManager {
         relevance_score: paper.year // Use recency as relevance for preprints
       }));
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('ArXiv search error:', error.message);
       return [];
     }
   }
 
-  private async searchCrossRef(query: string, maxResults: number, dateRange?: any): Promise<SearchResult[]> {
+  async searchCrossRef(query, maxResults, dateRange) {
     try {
       const apiKey = await this.securityManager.retrieveAPIKey('crossref');
       const headers: any = {
@@ -324,10 +283,10 @@ export class LiteratureSearchManager {
         timeout: 30000
       });
 
-      const results = response.data.message.items.map((item: any) => ({
+      const results = response.data.message.items.map((item) => ({
         id: item.DOI,
         title: item.title?.[0] || 'Untitled',
-        authors: item.author?.map((a: any) => `${a.given || ''} ${a.family || ''}`.trim()) || ['Unknown'],
+        authors: item.author?.map((a) => `${a.given || ''} ${a.family || ''}`.trim()) || ['Unknown'],
         year: item.published?.['date-parts']?.[0]?.[0] || 0,
         abstract: item.abstract,
         journal: item['container-title']?.[0],
@@ -343,8 +302,8 @@ export class LiteratureSearchManager {
         volume: item.volume,
         issue: item.issue,
         page: item.page,
-        funder: item.funder?.map((f: any) => f.name),
-        license: item.license?.map((l: any) => l.URL),
+        funder: item.funder?.map((f) => f.name),
+        license: item.license?.map((l) => l.URL),
         source: 'crossref',
         relevance_score: (item['is-referenced-by-count'] || 0) + (item['reference-count'] || 0) * 0.1
       }));
@@ -356,7 +315,7 @@ export class LiteratureSearchManager {
 
       return results;
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('CrossRef search error:', error.message);
       if (error.response?.status === 429) {
         console.error('CrossRef rate limit exceeded - consider using polite pool');
@@ -365,7 +324,7 @@ export class LiteratureSearchManager {
     }
   }
 
-  private async enrichCrossRefResults(results: SearchResult[], headers: any): Promise<void> {
+  async enrichCrossRefResults(results, headers) {
     try {
       // For each result, try to get more detailed information
       const enrichPromises = results.map(async (result) => {
@@ -398,7 +357,7 @@ export class LiteratureSearchManager {
     }
   }
 
-  private parseArXivXML(xmlData: string): any[] {
+  parseArXivXML(xmlData) {
     // Simplified XML parsing for ArXiv results
     // In a real implementation, use a proper XML parser
     const results: any[] = [];
@@ -432,7 +391,7 @@ export class LiteratureSearchManager {
     return results;
   }
 
-  private combineAndDeduplicateResults(resultsBySource: any): SearchResult[] {
+  combineAndDeduplicateResults(resultsBySource) {
     const combined: SearchResult[] = [];
     const seenTitles = new Set<string>();
     const seenDOIs = new Set<string>();
@@ -463,7 +422,7 @@ export class LiteratureSearchManager {
     return combined.sort((a, b) => (b.relevance_score || 0) - (a.relevance_score || 0));
   }
 
-  private normalizeTitle(title: string): string {
+  normalizeTitle(title) {
     return title
       .toLowerCase()
       .replace(/[^\w\s]/g, '')
@@ -471,7 +430,7 @@ export class LiteratureSearchManager {
       .trim();
   }
 
-  private generateSearchRecommendations(result: ComprehensiveSearchResult, options: LiteratureSearchOptions): string[] {
+  generateSearchRecommendations(result, options) {
     const recommendations: string[] = [];
 
     // Check result quality
@@ -515,7 +474,7 @@ export class LiteratureSearchManager {
 }
 
 // Export function for MCP server
-export async function searchLiterature(args: LiteratureSearchOptions): Promise<any> {
+async function searchLiterature(args) {
   const cacheManager = new CacheManager();
   const searchManager = new LiteratureSearchManager(cacheManager);
   
@@ -576,3 +535,8 @@ export async function searchLiterature(args: LiteratureSearchOptions): Promise<a
     };
   }
 }
+
+module.exports = {
+  LiteratureSearchManager,
+  searchLiterature
+};

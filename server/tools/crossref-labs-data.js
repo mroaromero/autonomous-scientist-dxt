@@ -1,89 +1,22 @@
-import axios from 'axios';
-import { SecurityManager } from '../utils/security';
-import { CacheManager } from '../utils/cache-manager';
-import * as fs from 'fs-extra';
-import * as path from 'path';
+const axios = require('axios');
+const { SecurityManager } = require('../utils/security.js');
+const { CacheManager } = require('../utils/cache-manager.js');
+const fs = require('fs-extra');
+const path = require('path');
 
-interface CrossRefDataFileOptions {
-  year?: number;
-  data_type?: 'works' | 'journals' | 'publishers' | 'funders' | 'all';
-  format?: 'json' | 'csv' | 'parquet';
-  sample_size?: number;
-  filters?: {
-    publisher?: string;
-    funder?: string;
-    type?: string;
-    has_doi?: boolean;
-    has_full_text?: boolean;
-    has_license?: boolean;
-    has_orcid?: boolean;
-    has_references?: boolean;
-    has_abstract?: boolean;
-  };
-}
 
-interface CrossRefDataFileResult {
-  year: number;
-  data_type: string;
-  total_records: number;
-  file_info: {
-    size_gb: number;
-    format: string;
-    download_url: string;
-    checksum: string;
-    last_updated: string;
-  };
-  sample_data: any[];
-  statistics: {
-    by_type: { [key: string]: number };
-    by_publisher: { [key: string]: number };
-    by_year: { [key: string]: number };
-    top_journals: Array<{ name: string; count: number; issn?: string }>;
-    top_funders: Array<{ name: string; count: number; id?: string }>;
-  };
-  data_quality: {
-    has_doi_percentage: number;
-    has_abstract_percentage: number;
-    has_full_text_percentage: number;
-    has_orcid_percentage: number;
-    average_reference_count: number;
-    average_citation_count: number;
-  };
-}
-
-interface CrossRefBulkSearchOptions {
-  query: string;
-  filters: {
-    year_range?: { start: number; end: number };
-    publishers?: string[];
-    funders?: string[];
-    types?: string[];
-    subjects?: string[];
-    has_doi?: boolean;
-    has_full_text?: boolean;
-    has_orcid?: boolean;
-  };
-  facets?: string[];
-  sample?: boolean;
-  max_results?: number;
-}
-
-export class CrossRefLabsDataManager {
-  private securityManager: SecurityManager;
-  private cacheManager: CacheManager;
-  private workspaceDir: string;
-  private baseApiUrl = 'https://api.crossref.org';
-  
-  // Annual data file years available
-  private availableYears = [2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015];
-  
-  constructor(cacheManager: CacheManager, workspaceDir: string) {
+class CrossRefLabsDataManager {
+  constructor(cacheManager, workspaceDir) {
     this.securityManager = new SecurityManager();
     this.cacheManager = cacheManager;
     this.workspaceDir = workspaceDir;
+    this.baseApiUrl = 'https://api.crossref.org';
+    
+    // Annual data file years available
+    this.availableYears = [2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015];
   }
 
-  async accessDataFile(options: CrossRefDataFileOptions): Promise<CrossRefDataFileResult> {
+  async accessDataFile(options) {
     const { 
       year = new Date().getFullYear() - 1,
       data_type = 'works',
@@ -118,7 +51,7 @@ export class CrossRefLabsDataManager {
       // Calculate data quality metrics
       const dataQuality = this.calculateDataQuality(sampleData);
 
-      const result: CrossRefDataFileResult = {
+      const result = {
         year,
         data_type,
         total_records: dataFileInfo.total_records,
@@ -137,13 +70,13 @@ export class CrossRefLabsDataManager {
 
       return result;
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('CrossRef Labs Data access error:', error.message);
       throw new Error(`Failed to access CrossRef data file: ${error.message}`);
     }
   }
 
-  private async getDataFileMetadata(year: number, dataType: string, headers: any): Promise<any> {
+  async getDataFileMetadata(year, dataType, headers) {
     // This would normally query the actual CrossRef Labs API
     // For now, we'll return estimated metadata based on known CrossRef data
     
@@ -169,13 +102,13 @@ export class CrossRefLabsDataManager {
     };
   }
 
-  private async getSampleData(
-    year: number, 
-    dataType: string, 
-    sampleSize: number, 
-    filters: any, 
-    headers: any
-  ): Promise<any[]> {
+  async getSampleData(
+    year, 
+    dataType, 
+    sampleSize, 
+    filters, 
+    headers
+  ) {
     try {
       // Use regular CrossRef API to get sample data that represents the data file
       const params: any = {
@@ -200,7 +133,7 @@ export class CrossRefLabsDataManager {
     }
   }
 
-  private buildFilters(year: number, filters: any): string {
+  buildFilters(year, filters) {
     const filterParts = [];
     
     // Year filter
@@ -242,7 +175,7 @@ export class CrossRefLabsDataManager {
     return filterParts.join(',');
   }
 
-  private getSelectFields(dataType: string): string {
+  getSelectFields(dataType) {
     const baseFields = 'DOI,title,author,published,publisher,type';
     
     switch (dataType) {
@@ -259,7 +192,7 @@ export class CrossRefLabsDataManager {
     }
   }
 
-  private generateStatistics(sampleData: any[]): any {
+  generateStatistics(sampleData) {
     const byType: { [key: string]: number } = {};
     const byPublisher: { [key: string]: number } = {};
     const byYear: { [key: string]: number } = {};
@@ -321,7 +254,7 @@ export class CrossRefLabsDataManager {
     };
   }
 
-  private calculateDataQuality(sampleData: any[]): any {
+  calculateDataQuality(sampleData) {
     if (sampleData.length === 0) {
       return {
         has_doi_percentage: 0,
@@ -353,7 +286,7 @@ export class CrossRefLabsDataManager {
     };
   }
 
-  async downloadDataFileSample(year: number, dataType: string, outputPath?: string): Promise<string> {
+  async downloadDataFileSample(year, dataType, outputPath) {
     try {
       const workspaceDir = outputPath || path.join(this.workspaceDir, 'crossref-data');
       await fs.ensureDir(workspaceDir);
@@ -379,13 +312,13 @@ export class CrossRefLabsDataManager {
       console.error(`📥 Downloaded CrossRef sample: ${sampleData.length} records to ${sampleFile}`);
       return sampleFile;
 
-    } catch (error: any) {
+    } catch (error) {
       console.error(`Failed to download sample for ${year} ${dataType}:`, error.message);
       throw error;
     }
   }
 
-  async getAvailableDataFiles(): Promise<any> {
+  async getAvailableDataFiles() {
     return {
       available_years: this.availableYears,
       data_types: [
@@ -408,7 +341,7 @@ export class CrossRefLabsDataManager {
 }
 
 // Export functions for MCP server
-export async function accessCrossRefDataFile(args: CrossRefDataFileOptions & { _workspace?: string }): Promise<any> {
+async function accessCrossRefDataFile(args) {
   const cacheManager = new CacheManager();
   const workspaceDir = args._workspace || path.join(require('os').homedir(), 'Documents', 'Research');
   const dataManager = new CrossRefLabsDataManager(cacheManager, workspaceDir);
@@ -489,7 +422,7 @@ export async function accessCrossRefDataFile(args: CrossRefDataFileOptions & { _
   }
 }
 
-export async function downloadCrossRefSample(args: { year: number; data_type: string; _workspace?: string }): Promise<any> {
+async function downloadCrossRefSample(args) {
   const cacheManager = new CacheManager();
   const workspaceDir = args._workspace || path.join(require('os').homedir(), 'Documents', 'Research');
   const dataManager = new CrossRefLabsDataManager(cacheManager, workspaceDir);
@@ -537,7 +470,7 @@ export async function downloadCrossRefSample(args: { year: number; data_type: st
   }
 }
 
-export async function getCrossRefDataInfo(args: { _workspace?: string }): Promise<any> {
+async function getCrossRefDataInfo(args) {
   const cacheManager = new CacheManager();
   const workspaceDir = args._workspace || path.join(require('os').homedir(), 'Documents', 'Research');
   const dataManager = new CrossRefLabsDataManager(cacheManager, workspaceDir);
@@ -546,7 +479,7 @@ export async function getCrossRefDataInfo(args: { _workspace?: string }): Promis
     const info = await dataManager.getAvailableDataFiles();
 
     const yearsList = info.available_years.join(', ');
-    const dataTypesList = info.data_types.map((type: any) => 
+    const dataTypesList = info.data_types.map((type) => 
       `• **${type.type}**: ${type.description} (${type.estimated_size})`
     ).join('\n');
 
@@ -590,3 +523,10 @@ export async function getCrossRefDataInfo(args: { _workspace?: string }): Promis
     };
   }
 }
+
+module.exports = {
+  CrossRefLabsDataManager,
+  accessCrossRefDataFile,
+  downloadCrossRefSample,
+  getCrossRefDataInfo
+};

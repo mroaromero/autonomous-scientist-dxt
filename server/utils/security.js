@@ -1,20 +1,17 @@
-import * as crypto from 'crypto';
-import * as fs from 'fs-extra';
-import * as path from 'path';
-import * as os from 'os';
+const crypto = require('crypto');
+const fs = require('fs-extra');
+const path = require('path');
+const os = require('os');
 
-interface EncryptedStorage {
-  data: string;
-  iv: string;
-  salt: string;
-  timestamp: string;
-}
+// EncryptedStorage interface:
+// {
+//   data: string;
+//   iv: string;
+//   salt: string;
+//   timestamp: string;
+// }
 
-export class SecurityManager {
-  private configDir: string;
-  private keysFile: string;
-  private masterKey: Buffer | null = null;
-
+class SecurityManager {
   constructor() {
     // Store encrypted keys in user's home directory
     this.configDir = path.join(os.homedir(), '.autonomous-scientist');
@@ -22,13 +19,13 @@ export class SecurityManager {
     this.initializeConfigDir();
   }
 
-  private initializeConfigDir(): void {
+  initializeConfigDir() {
     if (!fs.existsSync(this.configDir)) {
       fs.mkdirSync(this.configDir, { mode: 0o700 }); // Owner read/write/execute only
     }
   }
 
-  private async getMasterKey(): Promise<Buffer> {
+  async getMasterKey() {
     if (this.masterKey) {
       return this.masterKey;
     }
@@ -49,7 +46,7 @@ export class SecurityManager {
     return this.masterKey;
   }
 
-  async storeAPIKey(service: string, apiKey: string): Promise<void> {
+  async storeAPIKey(service, apiKey) {
     try {
       const masterKey = await this.getMasterKey();
       
@@ -67,7 +64,7 @@ export class SecurityManager {
       encrypted += cipher.final('hex');
       
       // Prepare storage object
-      const storageData: EncryptedStorage = {
+      const storageData = {
         data: encrypted,
         iv: iv.toString('hex'),
         salt: salt.toString('hex'),
@@ -75,7 +72,7 @@ export class SecurityManager {
       };
       
       // Read existing keys or create new storage
-      let keysStorage: Record<string, EncryptedStorage> = {};
+      let keysStorage = {};
       if (fs.existsSync(this.keysFile)) {
         const existing = await fs.readFile(this.keysFile, 'utf8');
         keysStorage = JSON.parse(existing);
@@ -98,7 +95,7 @@ export class SecurityManager {
     }
   }
 
-  async retrieveAPIKey(service: string): Promise<string | null> {
+  async retrieveAPIKey(service) {
     try {
       if (!fs.existsSync(this.keysFile)) {
         return null;
@@ -133,7 +130,7 @@ export class SecurityManager {
     }
   }
 
-  async listStoredServices(): Promise<string[]> {
+  async listStoredServices() {
     try {
       if (!fs.existsSync(this.keysFile)) {
         return [];
@@ -147,7 +144,7 @@ export class SecurityManager {
     }
   }
 
-  async removeAPIKey(service: string): Promise<boolean> {
+  async removeAPIKey(service) {
     try {
       if (!fs.existsSync(this.keysFile)) {
         return false;
@@ -175,7 +172,7 @@ export class SecurityManager {
     }
   }
 
-  async clearAllKeys(): Promise<void> {
+  async clearAllKeys() {
     try {
       if (fs.existsSync(this.keysFile)) {
         await fs.unlink(this.keysFile);
@@ -195,7 +192,7 @@ export class SecurityManager {
   }
 
   // Utility method to validate API key format
-  validateAPIKeyFormat(service: string, key: string): { valid: boolean; error?: string } {
+  validateAPIKeyFormat(service, key) {
     const patterns = {
       openai: /^sk-[A-Za-z0-9]{48,}$/,
       anthropic: /^sk-ant-[A-Za-z0-9\-_]{95,}$/,
@@ -203,7 +200,7 @@ export class SecurityManager {
       crossref: /^[A-Za-z0-9\-_]{20,}$/ // Polite pool token
     };
 
-    const pattern = patterns[service as keyof typeof patterns];
+    const pattern = patterns[service];
     
     if (!pattern) {
       return { valid: true }; // Unknown service, assume valid
@@ -220,14 +217,14 @@ export class SecurityManager {
   }
 
   // Check if sensitive data should be logged (never log API keys)
-  sanitizeForLogging(data: any): any {
+  sanitizeForLogging(data) {
     if (typeof data === 'string') {
       // Mask potential API keys
       return data.replace(/sk-[A-Za-z0-9\-_]{20,}/g, 'sk-***MASKED***');
     }
     
     if (typeof data === 'object' && data !== null) {
-      const sanitized: any = {};
+      const sanitized = {};
       for (const [key, value] of Object.entries(data)) {
         if (['key', 'token', 'password', 'secret'].some(secret => 
           key.toLowerCase().includes(secret))) {
@@ -242,3 +239,5 @@ export class SecurityManager {
     return data;
   }
 }
+
+module.exports = { SecurityManager };

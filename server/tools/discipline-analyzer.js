@@ -1,79 +1,15 @@
-import { LanguageDetector } from '../utils/language-detector';
-import { CacheManager } from '../utils/cache-manager';
+const { LanguageDetector } = require('../utils/language-detector.js');
+const { CacheManager } = require('../utils/cache-manager.js');
 
-interface DisciplineAnalysisOptions {
-  content: string;
-  discipline: string;
-  analysis_type?: 'methodology' | 'theoretical' | 'empirical' | 'comprehensive';
-  language?: string;
-}
 
-interface AnalysisResult {
-  discipline: string;
-  analysis_type: string;
-  findings: {
-    methodology: MethodologyAnalysis;
-    theoretical_framework: TheoreticalAnalysis;
-    empirical_findings: EmpiricalAnalysis;
-    quality_assessment: QualityAssessment;
-    discipline_specific: any;
-  };
-  recommendations: string[];
-  citations_found: string[];
-  keywords: string[];
-  summary: string;
-}
-
-interface MethodologyAnalysis {
-  research_design: string;
-  data_collection: string[];
-  analysis_methods: string[];
-  sample_size?: number;
-  validity_threats: string[];
-  ethical_considerations: string[];
-}
-
-interface TheoreticalAnalysis {
-  main_theories: string[];
-  conceptual_framework: string;
-  hypotheses: string[];
-  variables: {
-    independent: string[];
-    dependent: string[];
-    mediating: string[];
-    moderating: string[];
-  };
-}
-
-interface EmpiricalAnalysis {
-  findings: string[];
-  statistical_significance: boolean;
-  effect_sizes: string[];
-  limitations: string[];
-  generalizability: string;
-}
-
-interface QualityAssessment {
-  methodological_rigor: number; // 1-10 scale
-  theoretical_contribution: number;
-  empirical_validity: number;
-  overall_score: number;
-  strengths: string[];
-  weaknesses: string[];
-}
-
-export class DisciplineAnalyzer {
-  private languageDetector: LanguageDetector;
-  private cacheManager: CacheManager;
-  private disciplinePatterns: Map<string, any>;
-
-  constructor(cacheManager: CacheManager) {
+class DisciplineAnalyzer {
+  constructor(cacheManager) {
     this.languageDetector = new LanguageDetector();
     this.cacheManager = cacheManager;
     this.disciplinePatterns = this.initializeDisciplinePatterns();
   }
 
-  private initializeDisciplinePatterns(): Map<string, any> {
+  initializeDisciplinePatterns() {
     const patterns = new Map();
 
     // Psychology patterns
@@ -273,7 +209,7 @@ export class DisciplineAnalyzer {
     return patterns;
   }
 
-  async analyzeByDiscipline(options: DisciplineAnalysisOptions): Promise<AnalysisResult> {
+  async analyzeByDiscipline(options) {
     const { content, discipline, analysis_type = 'comprehensive', language } = options;
 
     // Check cache first
@@ -296,7 +232,7 @@ export class DisciplineAnalyzer {
     }
 
     // Perform analysis
-    const result: AnalysisResult = {
+    const result = {
       discipline,
       analysis_type,
       findings: {
@@ -319,8 +255,8 @@ export class DisciplineAnalyzer {
     return result;
   }
 
-  private async analyzeMethodology(content: string, patterns: any): Promise<MethodologyAnalysis> {
-    const methodology: MethodologyAnalysis = {
+  async analyzeMethodology(content, patterns) {
+    const methodology = {
       research_design: 'Not specified',
       data_collection: [],
       analysis_methods: [],
@@ -390,8 +326,8 @@ export class DisciplineAnalyzer {
     return methodology;
   }
 
-  private async analyzeTheoretical(content: string, patterns: any): Promise<TheoreticalAnalysis> {
-    const theoretical: TheoreticalAnalysis = {
+  async analyzeTheoretical(content, patterns) {
+    const theoretical = {
       main_theories: [],
       conceptual_framework: 'Not explicitly stated',
       hypotheses: [],
@@ -439,7 +375,7 @@ export class DisciplineAnalyzer {
     for (const [type, pattern] of Object.entries(variablePatterns)) {
       const matches = content.match(pattern);
       if (matches) {
-        theoretical.variables[type as keyof typeof theoretical.variables] = 
+        theoretical.variables[type] = 
           matches.map(match => match.replace(pattern, '$1').trim());
       }
     }
@@ -447,8 +383,8 @@ export class DisciplineAnalyzer {
     return theoretical;
   }
 
-  private async analyzeEmpirical(content: string, patterns: any): Promise<EmpiricalAnalysis> {
-    const empirical: EmpiricalAnalysis = {
+  async analyzeEmpirical(content, patterns) {
+    const empirical = {
       findings: [],
       statistical_significance: false,
       effect_sizes: [],
@@ -510,7 +446,7 @@ export class DisciplineAnalyzer {
     return empirical;
   }
 
-  private async assessQuality(content: string, patterns: any): Promise<QualityAssessment> {
+  async assessQuality(content, patterns) {
     let methodologicalRigor = 5; // Base score
     let theoreticalContribution = 5;
     let empiricalValidity = 5;
@@ -527,7 +463,7 @@ export class DisciplineAnalyzer {
     if (lowerContent.includes('effect size')) methodologicalRigor += 1;
 
     // Assess theoretical contribution
-    if (patterns.theories.some((t: string) => lowerContent.includes(t.toLowerCase()))) {
+    if (patterns.theories.some((t) => lowerContent.includes(t.toLowerCase()))) {
       theoreticalContribution += 1;
     }
     if (lowerContent.includes('novel') || lowerContent.includes('innovative')) {
@@ -560,13 +496,13 @@ export class DisciplineAnalyzer {
     };
   }
 
-  private async performDisciplineSpecificAnalysis(content: string, discipline: string, patterns: any): Promise<any> {
+  async performDisciplineSpecificAnalysis(content, discipline, patterns) {
     const lowerContent = content.toLowerCase();
 
     switch (discipline) {
       case 'psychology':
         return {
-          psychological_measures: patterns.measures.filter((m: string) => 
+          psychological_measures: patterns.measures.filter((m) => 
             lowerContent.includes(m.toLowerCase())
           ),
           participant_characteristics: this.extractParticipantInfo(content),
@@ -577,7 +513,7 @@ export class DisciplineAnalyzer {
       case 'neuroscience':
         return {
           brain_regions: this.extractBrainRegions(content),
-          neuroimaging_methods: patterns.methodologies.filter((m: string) => 
+          neuroimaging_methods: patterns.methodologies.filter((m) => 
             lowerContent.includes(m.toLowerCase())
           ),
           neural_measures: this.extractNeuralMeasures(content),
@@ -598,7 +534,7 @@ export class DisciplineAnalyzer {
           social_groups_studied: this.extractSocialGroups(content),
           social_phenomena: this.extractSocialPhenomena(content),
           demographic_factors: this.extractDemographicFactors(content),
-          social_theory_application: patterns.theories.filter((t: string) => 
+          social_theory_application: patterns.theories.filter((t) => 
             lowerContent.includes(t.toLowerCase())
           )
         };
@@ -641,7 +577,7 @@ export class DisciplineAnalyzer {
   }
 
   // Helper methods for discipline-specific analysis
-  private extractParticipantInfo(content: string): any {
+  extractParticipantInfo(content) {
     const ageMatch = content.match(/age[s]?[:\s]*(\d+(?:\.\d+)?)/i);
     const genderMatch = content.match(/(male|female)[s]?[:\s]*(\d+)/gi);
     const nMatch = content.match(/n\s*=\s*(\d+)/i);
@@ -653,7 +589,7 @@ export class DisciplineAnalyzer {
     };
   }
 
-  private extractBrainRegions(content: string): string[] {
+  extractBrainRegions(content) {
     const brainRegions = [
       'prefrontal cortex', 'hippocampus', 'amygdala', 'cerebellum', 'thalamus',
       'striatum', 'insula', 'anterior cingulate', 'posterior cingulate',
@@ -665,7 +601,7 @@ export class DisciplineAnalyzer {
     );
   }
 
-  private extractCitations(content: string): string[] {
+  extractCitations(content) {
     const citationPatterns = [
       /\([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*,\s+\d{4}\)/g,
       /\[\d+(?:-\d+)?\]/g,
@@ -683,7 +619,7 @@ export class DisciplineAnalyzer {
     return [...new Set(citations)];
   }
 
-  private extractKeywords(content: string, patterns: any): string[] {
+  extractKeywords(content, patterns) {
     const keywords: string[] = [];
     const lowerContent = content.toLowerCase();
 
@@ -698,39 +634,39 @@ export class DisciplineAnalyzer {
   }
 
   // Additional helper methods (simplified implementations)
-  private extractInterventionInfo(content: string): any { return {}; }
-  private extractBehavioralOutcomes(content: string): string[] { return []; }
-  private extractNeuralMeasures(content: string): string[] { return []; }
-  private extractEducationalLevel(content: string): string { return 'Not specified'; }
-  private extractLearningOutcomes(content: string): string[] { return []; }
-  private extractPedagogicalApproach(content: string): string { return 'Not specified'; }
-  private extractAssessmentMethods(content: string): string[] { return []; }
-  private extractSocialGroups(content: string): string[] { return []; }
-  private extractSocialPhenomena(content: string): string[] { return []; }
-  private extractDemographicFactors(content: string): string[] { return []; }
-  private extractCulturalContext(content: string): string { return 'Not specified'; }
-  private extractFieldworkLocation(content: string): string { return 'Not specified'; }
-  private extractEthnographicMethods(content: string): string[] { return []; }
-  private extractCulturalPractices(content: string): string[] { return []; }
-  private extractArguments(content: string): string[] { return []; }
-  private analyzeLogicalStructure(content: string): any { return {}; }
-  private identifyPhilosophicalTradition(content: string): string { return 'Not identified'; }
-  private extractConceptualAnalysis(content: string): string[] { return []; }
-  private extractPoliticalInstitutions(content: string): string[] { return []; }
-  private extractPolicyAreas(content: string): string[] { return []; }
-  private extractPoliticalActors(content: string): string[] { return []; }
-  private extractGovernanceMechanisms(content: string): string[] { return []; }
-  private extractCountries(content: string): string[] { return []; }
-  private extractInternationalIssues(content: string): string[] { return []; }
-  private extractDiplomaticRelations(content: string): string[] { return []; }
-  private extractSecurityConcerns(content: string): string[] { return []; }
+  extractInterventionInfo(content) { return {}; }
+  extractBehavioralOutcomes(content) { return []; }
+  extractNeuralMeasures(content) { return []; }
+  extractEducationalLevel(content) { return 'Not specified'; }
+  extractLearningOutcomes(content) { return []; }
+  extractPedagogicalApproach(content) { return 'Not specified'; }
+  extractAssessmentMethods(content) { return []; }
+  extractSocialGroups(content) { return []; }
+  extractSocialPhenomena(content) { return []; }
+  extractDemographicFactors(content) { return []; }
+  extractCulturalContext(content) { return 'Not specified'; }
+  extractFieldworkLocation(content) { return 'Not specified'; }
+  extractEthnographicMethods(content) { return []; }
+  extractCulturalPractices(content) { return []; }
+  extractArguments(content) { return []; }
+  analyzeLogicalStructure(content) { return {}; }
+  identifyPhilosophicalTradition(content) { return 'Not identified'; }
+  extractConceptualAnalysis(content) { return []; }
+  extractPoliticalInstitutions(content) { return []; }
+  extractPolicyAreas(content) { return []; }
+  extractPoliticalActors(content) { return []; }
+  extractGovernanceMechanisms(content) { return []; }
+  extractCountries(content) { return []; }
+  extractInternationalIssues(content) { return []; }
+  extractDiplomaticRelations(content) { return []; }
+  extractSecurityConcerns(content) { return []; }
 
-  private async generateRecommendations(content: string, discipline: string, patterns: any): Promise<string[]> {
+  async generateRecommendations(content, discipline, patterns) {
     const recommendations: string[] = [];
     const lowerContent = content.toLowerCase();
 
     // General recommendations based on missing elements
-    if (!patterns.theories.some((t: string) => lowerContent.includes(t.toLowerCase()))) {
+    if (!patterns.theories.some((t) => lowerContent.includes(t.toLowerCase()))) {
       recommendations.push(`Consider incorporating established ${discipline} theories to strengthen theoretical foundation`);
     }
 
@@ -742,14 +678,14 @@ export class DisciplineAnalyzer {
       recommendations.push('Include suggestions for future research directions');
     }
 
-    if (!patterns.analyses.some((a: string) => lowerContent.includes(a.toLowerCase()))) {
+    if (!patterns.analyses.some((a) => lowerContent.includes(a.toLowerCase()))) {
       recommendations.push(`Consider using more sophisticated ${discipline}-specific analytical methods`);
     }
 
     return recommendations;
   }
 
-  private async generateSummary(content: string, discipline: string): Promise<string> {
+  async generateSummary(content, discipline) {
     // Simplified summary generation
     const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 50);
     const keySentences = sentences.slice(0, 3).map(s => s.trim()).join('. ');
@@ -759,7 +695,7 @@ export class DisciplineAnalyzer {
 }
 
 // Export function for MCP server
-export async function analyzeByDiscipline(args: DisciplineAnalysisOptions): Promise<any> {
+async function analyzeByDiscipline(args) {
   const cacheManager = new CacheManager();
   const analyzer = new DisciplineAnalyzer(cacheManager);
   
@@ -806,3 +742,8 @@ export async function analyzeByDiscipline(args: DisciplineAnalysisOptions): Prom
     };
   }
 }
+
+module.exports = {
+  DisciplineAnalyzer,
+  analyzeByDiscipline
+};

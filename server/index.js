@@ -5,9 +5,6 @@
  * MCP Server for Research Automation in Social Sciences and Humanities
  */
 
-// Register ts-node for TypeScript support
-require('ts-node/register');
-
 const { Server } = require('@modelcontextprotocol/sdk/server/index.js');
 const { StdioServerTransport } = require('@modelcontextprotocol/sdk/server/stdio.js');
 const { 
@@ -20,17 +17,17 @@ const path = require('path');
 const fs = require('fs');
 
 // Import tool implementations
-const { setupResearchAPIs } = require('./tools/api-setup.ts');
-const { processPDF } = require('./tools/pdf-processor.ts');
-const { searchLiterature } = require('./tools/literature-search.ts');
-const { analyzeByDiscipline } = require('./tools/discipline-analyzer.ts');
-const { generateLaTeX } = require('./tools/latex-generator.ts');
-const { accessSemanticScholarDatasets, downloadDatasetSample } = require('./tools/semantic-scholar-datasets.ts');
-const { searchArXivAdvanced, getArXivStatistics } = require('./tools/arxiv-enhanced.ts');
-const { accessCrossRefDataFile, downloadCrossRefSample, getCrossRefDataInfo } = require('./tools/crossref-labs-data.ts');
-const { MemoryManager } = require('./utils/memory-manager.ts');
-const { ErrorHandler } = require('./utils/error-handler.ts');
-const { CacheManager } = require('./utils/cache-manager.ts');
+const { setupResearchAPIs } = require('./tools/api-setup.js');
+const { processPDF } = require('./tools/pdf-processor.js');
+const { searchLiterature } = require('./tools/literature-search.js');
+const { analyzeByDiscipline } = require('./tools/discipline-analyzer.js');
+const { generateLaTeX } = require('./tools/latex-generator.js');
+const { accessSemanticScholarDatasets, downloadDatasetSample } = require('./tools/semantic-scholar-datasets.js');
+const { searchArXivAdvanced, getArXivStatistics } = require('./tools/arxiv-enhanced.js');
+const { accessCrossRefDataFile, downloadCrossRefSample, getCrossRefDataInfo } = require('./tools/crossref-labs-data.js');
+const { MemoryManager } = require('./utils/memory-manager.js');
+const { ErrorHandler } = require('./utils/error-handler.js');
+const { CacheManager } = require('./utils/cache-manager.js');
 
 class AutonomousScientistServer {
   constructor() {

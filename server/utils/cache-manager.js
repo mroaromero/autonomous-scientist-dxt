@@ -1,38 +1,15 @@
-import NodeCache from 'node-cache';
-import * as crypto from 'crypto';
-import * as fs from 'fs-extra';
-import * as path from 'path';
-import * as os from 'os';
+const NodeCache = require('node-cache');
+const crypto = require('crypto');
+const fs = require('fs-extra');
+const path = require('path');
+const os = require('os');
 
-interface CacheEntry {
-  data: any;
-  timestamp: number;
-  accessCount: number;
-  lastAccessed: number;
-  size: number;
-  ttl: number;
-}
-
-interface CacheStats {
-  entries: number;
-  totalSize: number;
-  hitRate: number;
-  memoryUsage: string;
-  oldestEntry: number;
-  mostAccessed: string;
-}
-
-export class CacheManager {
-  private memoryCache: NodeCache;
-  private diskCachePath: string;
-  private maxMemorySize: number; // 2GB for i3-12100F optimization
-  private maxDiskSize: number;   // 5GB disk cache
-  private currentMemorySize: number = 0;
-  private currentDiskSize: number = 0;
-  private hits: number = 0;
-  private misses: number = 0;
-
+class CacheManager {
   constructor() {
+    this.currentMemorySize = 0;
+    this.currentDiskSize = 0;
+    this.hits = 0;
+    this.misses = 0;
     // Initialize memory cache with conservative settings for i3-12100F
     this.memoryCache = new NodeCache({
       stdTTL: 3600, // 1 hour default TTL
@@ -51,14 +28,14 @@ export class CacheManager {
     this.startMaintenanceRoutine();
   }
 
-  private initializeDiskCache(): void {
+  initializeDiskCache() {
     fs.ensureDirSync(this.diskCachePath);
     
     // Calculate current disk cache size
     this.updateDiskCacheSize();
   }
 
-  private setupCacheEvents(): void {
+  setupCacheEvents() {
     // Handle cache deletion events
     this.memoryCache.on('del', (key, value) => {
       if (value && typeof value === 'object' && value.size) {
@@ -75,7 +52,7 @@ export class CacheManager {
     });
   }
 
-  private startMaintenanceRoutine(): void {
+  startMaintenanceRoutine() {
     // Run maintenance every 15 minutes
     setInterval(() => {
       this.performMaintenance();
@@ -83,14 +60,14 @@ export class CacheManager {
   }
 
   // Generate cache key from input data
-  private generateCacheKey(namespace: string, data: any): string {
+  generateCacheKey(namespace, data) {
     const hash = crypto.createHash('sha256');
     hash.update(JSON.stringify(data));
     return `${namespace}:${hash.digest('hex').substring(0, 16)}`;
   }
 
   // Store data in memory cache
-  async setMemory(namespace: string, key: string, data: any, ttl: number = 3600): Promise<void> {
+  async setMemory(namespace, key, data, ttl = 3600) {
     const cacheKey = `${namespace}:${key}`;
     const dataSize = this.estimateSize(data);
     
@@ -99,7 +76,7 @@ export class CacheManager {
       await this.evictLeastRecentlyUsed();
     }
 
-    const entry: CacheEntry = {
+    const entry = {
       data,
       timestamp: Date.now(),
       accessCount: 0,
@@ -115,9 +92,9 @@ export class CacheManager {
   }
 
   // Retrieve data from memory cache
-  async getMemory(namespace: string, key: string): Promise<any> {
+  async getMemory(namespace, key) {
     const cacheKey = `${namespace}:${key}`;
-    const entry = this.memoryCache.get<CacheEntry>(cacheKey);
+    const entry = this.memoryCache.get(cacheKey);
     
     if (entry) {
       entry.accessCount++;
@@ -132,7 +109,7 @@ export class CacheManager {
   }
 
   // Store large data on disk cache
-  async setDisk(namespace: string, key: string, data: any, ttl: number = 86400): Promise<void> {
+  async setDisk(namespace, key, data, ttl = 86400) {
     const cacheKey = this.generateCacheKey(namespace, { key, data: typeof data });
     const filePath = path.join(this.diskCachePath, `${cacheKey}.json`);
     
@@ -164,7 +141,7 @@ export class CacheManager {
   }
 
   // Retrieve data from disk cache
-  async getDisk(namespace: string, key: string): Promise<any> {
+  async getDisk(namespace, key) {
     const cacheKey = this.generateCacheKey(namespace, { key });
     const filePath = path.join(this.diskCachePath, `${cacheKey}.json`);
     
@@ -197,7 +174,7 @@ export class CacheManager {
   }
 
   // Smart cache method - automatically chooses memory or disk based on size
-  async set(namespace: string, key: string, data: any, ttl: number = 3600): Promise<void> {
+  async set(namespace, key, data, ttl = 3600) {
     const dataSize = this.estimateSize(data);
     const sizeThreshold = 10 * 1024 * 1024; // 10MB threshold
     
@@ -211,7 +188,7 @@ export class CacheManager {
   }
 
   // Smart get method - checks memory first, then disk
-  async get(namespace: string, key: string): Promise<any> {
+  async get(namespace, key) {
     // Try memory cache first
     let result = await this.getMemory(namespace, key);
     if (result !== null) {
@@ -245,50 +222,50 @@ export class CacheManager {
   }
 
   // Cache academic paper processing results
-  async cachePDFProcessing(filePath: string, result: any): Promise<void> {
+  async cachePDFProcessing(filePath, result) {
     const key = `pdf:${path.basename(filePath)}:${await this.getFileHash(filePath)}`;
     await this.set('pdf-processing', key, result, 86400); // 24 hours
   }
 
-  async getCachedPDFProcessing(filePath: string): Promise<any> {
+  async getCachedPDFProcessing(filePath) {
     const key = `pdf:${path.basename(filePath)}:${await this.getFileHash(filePath)}`;
     return await this.get('pdf-processing', key);
   }
 
   // Cache OCR results
-  async cacheOCRResult(imagePath: string, language: string, result: any): Promise<void> {
+  async cacheOCRResult(imagePath, language, result) {
     const key = `ocr:${path.basename(imagePath)}:${language}:${await this.getFileHash(imagePath)}`;
     await this.set('ocr-results', key, result, 604800); // 7 days
   }
 
-  async getCachedOCRResult(imagePath: string, language: string): Promise<any> {
+  async getCachedOCRResult(imagePath, language) {
     const key = `ocr:${path.basename(imagePath)}:${language}:${await this.getFileHash(imagePath)}`;
     return await this.get('ocr-results', key);
   }
 
   // Cache API search results  
-  async cacheSearchResults(query: string, source: string, results: any): Promise<void> {
+  async cacheSearchResults(query, source, results) {
     const key = `search:${source}:${crypto.createHash('md5').update(query).digest('hex')}`;
     await this.set('search-results', key, results, 3600); // 1 hour
   }
 
-  async getCachedSearchResults(query: string, source: string): Promise<any> {
+  async getCachedSearchResults(query, source) {
     const key = `search:${source}:${crypto.createHash('md5').update(query).digest('hex')}`;
     return await this.get('search-results', key);
   }
 
   // Cache LaTeX compilation results
-  async cacheLaTeXCompilation(source: string, result: any): Promise<void> {
+  async cacheLaTeXCompilation(source, result) {
     const key = `latex:${crypto.createHash('md5').update(source).digest('hex')}`;
     await this.setMemory('latex-compilation', key, result, 7200); // 2 hours
   }
 
-  async getCachedLaTeXCompilation(source: string): Promise<any> {
+  async getCachedLaTeXCompilation(source) {
     const key = `latex:${crypto.createHash('md5').update(source).digest('hex')}`;
     return await this.getMemory('latex-compilation', key);
   }
 
-  private async getFileHash(filePath: string): Promise<string> {
+  async getFileHash(filePath) {
     try {
       const stats = await fs.stat(filePath);
       return crypto.createHash('md5')
@@ -299,7 +276,7 @@ export class CacheManager {
     }
   }
 
-  private estimateSize(data: any): number {
+  estimateSize(data) {
     if (Buffer.isBuffer(data)) {
       return data.length;
     }
@@ -308,19 +285,19 @@ export class CacheManager {
     return Buffer.byteLength(jsonString, 'utf8');
   }
 
-  private formatBytes(bytes: number): string {
+  formatBytes(bytes) {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     if (bytes === 0) return '0 Bytes';
     const i = Math.floor(Math.log(bytes) / Math.log(1024));
     return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
   }
 
-  private async evictLeastRecentlyUsed(): Promise<void> {
+  async evictLeastRecentlyUsed() {
     const keys = this.memoryCache.keys();
-    const entries: Array<{ key: string; entry: CacheEntry }> = [];
+    const entries = [];
     
     for (const key of keys) {
-      const entry = this.memoryCache.get<CacheEntry>(key);
+      const entry = this.memoryCache.get(key);
       if (entry) {
         entries.push({ key, entry });
       }
@@ -337,7 +314,7 @@ export class CacheManager {
     }
   }
 
-  private async updateDiskCacheSize(): Promise<void> {
+  async updateDiskCacheSize() {
     try {
       const files = await fs.readdir(this.diskCachePath);
       this.currentDiskSize = 0;
@@ -352,10 +329,10 @@ export class CacheManager {
     }
   }
 
-  private async cleanDiskCache(): Promise<void> {
+  async cleanDiskCache() {
     try {
       const files = await fs.readdir(this.diskCachePath);
-      const fileStats: Array<{ file: string; stats: any; entry?: any }> = [];
+      const fileStats = [];
       
       for (const file of files) {
         const filePath = path.join(this.diskCachePath, file);
@@ -403,7 +380,7 @@ export class CacheManager {
     }
   }
 
-  private async performMaintenance(): Promise<void> {
+  async performMaintenance() {
     console.error('🧹 Performing cache maintenance...');
     
     // Update disk cache size
@@ -445,7 +422,7 @@ export class CacheManager {
   }
 
   // Get cache statistics
-  getStats(): CacheStats {
+  getStats() {
     const memoryKeys = this.memoryCache.keys();
     const totalRequests = this.hits + this.misses;
     const hitRate = totalRequests > 0 ? (this.hits / totalRequests) * 100 : 0;
@@ -455,7 +432,7 @@ export class CacheManager {
     let maxAccessCount = 0;
     
     for (const key of memoryKeys) {
-      const entry = this.memoryCache.get<CacheEntry>(key);
+      const entry = this.memoryCache.get(key);
       if (entry) {
         if (entry.timestamp < oldestEntry) {
           oldestEntry = entry.timestamp;
@@ -478,7 +455,7 @@ export class CacheManager {
   }
 
   // Clear all caches
-  async clearAll(): Promise<void> {
+  async clearAll() {
     this.memoryCache.flushAll();
     this.currentMemorySize = 0;
     
@@ -492,8 +469,12 @@ export class CacheManager {
   }
 
   // Shutdown cleanup
-  shutdown(): void {
+  shutdown() {
     this.memoryCache.close();
     console.error('🔌 Cache Manager shut down');
   }
 }
+
+module.exports = {
+  CacheManager
+};

@@ -1,23 +1,7 @@
-import { SecurityManager } from '../utils/security';
-import axios from 'axios';
+const { SecurityManager } = require('../utils/security.js');
+const axios = require('axios');
 
-interface APIConfiguration {
-  service: string;
-  baseUrl: string;
-  keyRequired: boolean;
-  testEndpoint: string;
-  description: string;
-  features: string[];
-}
-
-interface APISetupResponse {
-  success: boolean;
-  configured: APIConfiguration[];
-  errors: string[];
-  nextSteps: string[];
-}
-
-const SUPPORTED_APIS: APIConfiguration[] = [
+const SUPPORTED_APIS = [
   {
     service: 'semantic_scholar',
     baseUrl: 'https://api.semanticscholar.org/graph/v1',
@@ -60,15 +44,13 @@ const SUPPORTED_APIS: APIConfiguration[] = [
   }
 ];
 
-export class APISetupManager {
-  private securityManager: SecurityManager;
-  private configuredAPIs: Map<string, any> = new Map();
-
+class APISetupManager {
   constructor() {
     this.securityManager = new SecurityManager();
+    this.configuredAPIs = new Map();
   }
 
-  async setupResearchAPIs(args: { interactive?: boolean }): Promise<any> {
+  async setupResearchAPIs(args) {
     const { interactive = true } = args;
     
     if (interactive) {
@@ -78,8 +60,8 @@ export class APISetupManager {
     }
   }
 
-  private async startInteractiveSetup(): Promise<any> {
-    const response: APISetupResponse = {
+  async startInteractiveSetup() {
+    const response = {
       success: true,
       configured: [],
       errors: [],
@@ -146,7 +128,7 @@ Which API would you like to configure first? Just say:
     };
   }
 
-  async configureSpecificAPI(service: string, apiKey?: string): Promise<any> {
+  async configureSpecificAPI(service, apiKey) {
     const api = SUPPORTED_APIS.find(a => a.service.toLowerCase() === service.toLowerCase());
     
     if (!api) {
@@ -208,7 +190,7 @@ Which API would you like to configure first? Just say:
     }
   }
 
-  private requestAPIKey(api: APIConfiguration): any {
+  requestAPIKey(api) {
     const instructions = this.getAPIKeyInstructions(api.service);
     
     return {
@@ -224,7 +206,7 @@ Which API would you like to configure first? Just say:
     };
   }
 
-  private getAPIKeyInstructions(service: string): string {
+  getAPIKeyInstructions(service) {
     const instructions = {
       openai: `1. Go to https://platform.openai.com/api-keys
 2. Click "Create new secret key"
@@ -237,12 +219,12 @@ Which API would you like to configure first? Just say:
 4. Copy the key (sk-ant-...)`
     };
 
-    return instructions[service as keyof typeof instructions] || 'Check the service documentation for API key instructions.';
+    return instructions[service] || 'Check the service documentation for API key instructions.';
   }
 
-  private async testAPIConnection(api: APIConfiguration, apiKey?: string): Promise<{ success: boolean; error?: string }> {
+  async testAPIConnection(api, apiKey) {
     try {
-      const headers: any = {
+      const headers = {
         'User-Agent': 'Autonomous-Scientist/6.0 (Research Tool)'
       };
 
@@ -283,7 +265,7 @@ Which API would you like to configure first? Just say:
       });
 
       return { success: response.status === 200 };
-    } catch (error: any) {
+    } catch (error) {
       let errorMessage = 'Connection failed';
       
       if (error.response) {
@@ -303,85 +285,15 @@ Which API would you like to configure first? Just say:
       return { success: false, error: errorMessage };
     }
   }
-
-  async validateAPIKey(args: { service: string; key: string }): Promise<any> {
-    const { service, key } = args;
-    const api = SUPPORTED_APIS.find(a => a.service === service);
-    
-    if (!api) {
-      return {
-        content: [{
-          type: 'text',
-          text: `❌ Unknown service: ${service}`
-        }]
-      };
-    }
-
-    const testResult = await this.testAPIConnection(api, key);
-    
-    if (testResult.success) {
-      return {
-        content: [{
-          type: 'text',
-          text: `✅ **${service.toUpperCase()} API Key Valid**\n\n` +
-                `🔗 Connection successful\n` +
-                `⚡ Ready for research tasks\n` +
-                `🔒 Key will be stored securely if you proceed with configuration`
-        }]
-      };
-    } else {
-      return {
-        content: [{
-          type: 'text',
-          text: `❌ **${service.toUpperCase()} API Key Invalid**\n\n` +
-                `**Error:** ${testResult.error}\n\n` +
-                `**Please check:**\n` +
-                `• Key format and completeness\n` +
-                `• Account status and billing\n` +
-                `• Service availability`
-        }]
-      };
-    }
-  }
-
-  private async performAutomaticSetup(): Promise<any> {
-    // Auto-configure free APIs
-    const results = await Promise.all(
-      SUPPORTED_APIS
-        .filter(api => !api.keyRequired)
-        .map(api => this.testAPIConnection(api))
-    );
-
-    const successCount = results.filter(r => r.success).length;
-    
-    return {
-      content: [{
-        type: 'text',
-        text: `🔬 **Automatic API Setup Complete**\n\n` +
-              `✅ Configured: ${successCount} free APIs\n` +
-              `⚙️ Ready for research with Semantic Scholar, ArXiv, and CrossRef\n\n` +
-              `**To add paid APIs:**\n` +
-              `• Say "Configure OpenAI" for enhanced analysis\n` +
-              `• Say "Setup Anthropic" for extended Claude access\n\n` +
-              `**Start researching:**\n` +
-              `• "Search literature on [your topic]"\n` +
-              `• "Find recent papers about [subject]"\n` +
-              `• "Analyze this research area: [description]"`
-      }]
-    };
-  }
-
-  getConfiguredAPIs(): APIConfiguration[] {
-    return Array.from(this.configuredAPIs.values());
-  }
-
-  isAPIConfigured(service: string): boolean {
-    return this.configuredAPIs.has(service);
-  }
 }
 
 // Export the main function expected by the MCP server
-export async function setupResearchAPIs(args: any): Promise<any> {
+async function setupResearchAPIs(args) {
   const manager = new APISetupManager();
   return await manager.setupResearchAPIs(args);
 }
+
+module.exports = {
+  APISetupManager,
+  setupResearchAPIs
+};

@@ -28,18 +28,13 @@
     "political-science",
     "international-relations"
   ],
-  "icon": "assets/icon.png",
-  "screenshots": [
-    "assets/screenshots/literature-search.png",
-    "assets/screenshots/pdf-processing.png",
-    "assets/screenshots/latex-generation.png"
-  ],
+  "icon": "assets/icon.svg",
   "server": {
     "type": "node",
-    "entry_point": "server/index.js",
+    "entry_point": "server/index-simple.js",
     "mcp_config": {
       "command": "node",
-      "args": ["${__dirname}/server/index.js"],
+      "args": ["${__dirname}/server/index-simple.js"],
       "env": {
         "NODE_ENV": "production",
         "EXTENSION_PATH": "${__dirname}",

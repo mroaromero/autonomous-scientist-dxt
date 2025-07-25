@@ -2,6 +2,15 @@
 
 A comprehensive research automation system for social sciences and humanities, built as a Claude Desktop Extension (DXT).
 
+## 🙏 Acknowledgments
+
+This project was inspired by and builds upon the excellent work from:
+
+- **[AI-Scientist v2](https://github.com/SakanaAI/AI-Scientist-v2)** - Advanced automated scientific research capabilities
+- **[Lotus Wisdom MCP](https://github.com/linxule/lotus-wisdom-mcp)** - Model Context Protocol implementation patterns
+
+Special thanks to these projects for demonstrating the potential of AI-assisted research automation.
+
 ## 🎯 Overview
 
 The Autonomous Scientist is an advanced research assistant that combines:
@@ -187,16 +196,55 @@ Deep analysis of academic documents:
 
 ## 🔄 Development
 
+### Current Status (v6.0)
+
+**✅ Stable Components:**
+- **Simplified MCP Server** (`server/index-simple.js`) - Core functionality working
+- **DXT Package Integration** - Properly formatted for Claude Desktop
+- **Basic Research Tools** - Literature search, PDF processing, API setup
+
+**🚧 In Development:**
+- **Full TypeScript Conversion** - Complex tools being migrated from TypeScript
+- **Advanced PDF Processing** - OCR and citation extraction
+- **Discipline-Specific Analyzers** - Specialized analysis tools
+
+### Recent Fixes (January 2025)
+
+**Issue Resolution:**
+- ✅ **Server Disconnection**: Fixed TypeScript compatibility issues by creating simplified server
+- ✅ **MCP JSON Parsing**: Resolved stdout pollution in mcp-science-web wrapper
+- ✅ **Package Installation**: Updated manifest.json for proper DXT structure
+
+**Architecture Decision:**
+The project now uses a **hybrid approach**:
+1. **Simplified Server** (`index-simple.js`) for immediate functionality
+2. **Full Implementation** (`index.js`) for advanced features (in progress)
+
+This ensures users have a working research assistant while development continues.
+
+### Dependencies
+
+**Runtime Requirements:**
+- Node.js 18+ with ES Module support
+- Python 3.8+ with MCP SDK
+- Git for version control
+
+**Optional Integrations:**
+- LaTeX distribution for document generation
+- Tesseract OCR for multilingual text extraction
+
 ### Project Structure
 ```
 autonomous-scientist-extension/
-├── manifest.json          # DXT manifest
+├── manifest.json          # DXT manifest (updated for simplified server)
 ├── server/                # MCP server implementation
-│   ├── index.js           # Main server entry point
-│   ├── tools/             # Tool implementations
-│   └── utils/             # Utility modules
+│   ├── index-simple.js    # Simplified working server (current)
+│   ├── index.js           # Full server (TypeScript conversion in progress)
+│   ├── tools/             # Tool implementations (40+ tools)
+│   └── utils/             # Utility modules (security, memory, cache)
 ├── assets/                # Icons and screenshots
-└── templates/             # LaTeX templates
+├── templates/             # LaTeX templates for disciplines
+└── autonomous-scientist-dxt.dxt  # Packaged extension file
 ```
 
 ### Building from Source

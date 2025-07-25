@@ -1,52 +1,17 @@
-import axios from 'axios';
-import { SecurityManager } from '../utils/security';
-import { CacheManager } from '../utils/cache-manager';
-import * as fs from 'fs-extra';
-import * as path from 'path';
+const axios = require('axios');
+const { SecurityManager } = require('../utils/security.js');
+const { CacheManager } = require('../utils/cache-manager.js');
+const fs = require('fs-extra');
+const path = require('path');
 
-interface DatasetMetadata {
-  name: string;
-  description: string;
-  version: string;
-  size: string;
-  updated: string;
-  download_url: string;
-  format: string;
-  license: string;
-  citation: string;
-}
-
-interface DatasetSearchOptions {
-  query?: string;
-  dataset_type?: 'papers' | 'authors' | 'citations' | 'embeddings' | 'all';
-  limit?: number;
-  format?: 'json' | 'parquet' | 'csv';
-}
-
-interface DatasetAccessResult {
-  datasets: DatasetMetadata[];
-  total_available: number;
-  access_instructions: string[];
-  download_links: { [key: string]: string };
-  estimated_size: string;
-  api_usage: {
-    remaining_requests: number;
-    rate_limit: string;
-  };
-}
-
-export class SemanticScholarDatasetsManager {
-  private securityManager: SecurityManager;
-  private cacheManager: CacheManager;
-  private workspaceDir: string;
-
-  constructor(cacheManager: CacheManager, workspaceDir: string) {
+class SemanticScholarDatasetsManager {
+  constructor(cacheManager, workspaceDir) {
     this.securityManager = new SecurityManager();
     this.cacheManager = cacheManager;
     this.workspaceDir = workspaceDir;
   }
 
-  async accessDatasets(options: DatasetSearchOptions): Promise<DatasetAccessResult> {
+  async accessDatasets(options) {
     const { 
       query = '', 
       dataset_type = 'all', 
@@ -58,7 +23,7 @@ export class SemanticScholarDatasetsManager {
 
     try {
       const apiKey = await this.securityManager.retrieveAPIKey('semantic_scholar');
-      const headers: any = {
+      const headers = {
         'User-Agent': 'Autonomous-Scientist/6.0 (Research Dataset Access)'
       };
 
@@ -85,8 +50,8 @@ export class SemanticScholarDatasetsManager {
       const limitedDatasets = filteredDatasets.slice(0, limit);
 
       // Generate download links and access instructions
-      const downloadLinks: { [key: string]: string } = {};
-      const accessInstructions: string[] = [];
+      const downloadLinks = {};
+      const accessInstructions = [];
 
       for (const dataset of limitedDatasets) {
         downloadLinks[dataset.name] = await this.generateDownloadLink(dataset, format, headers);
@@ -123,7 +88,7 @@ export class SemanticScholarDatasetsManager {
         );
       }
 
-      const result: DatasetAccessResult = {
+      const result = {
         datasets: limitedDatasets,
         total_available: availableDatasets.length,
         access_instructions: accessInstructions,
@@ -144,7 +109,7 @@ export class SemanticScholarDatasetsManager {
 
       return result;
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('Semantic Scholar Datasets API error:', error.message);
       
       if (error.response?.status === 429) {
@@ -159,8 +124,8 @@ export class SemanticScholarDatasetsManager {
     }
   }
 
-  private parseDatasetResponse(data: any, datasetType: string): DatasetMetadata[] {
-    const datasets: DatasetMetadata[] = [];
+  parseDatasetResponse(data, datasetType) {
+    const datasets = [];
 
     // Mock implementation - in real scenario, parse actual API response
     const mockDatasets = [
@@ -229,7 +194,7 @@ export class SemanticScholarDatasetsManager {
     return mockDatasets.filter(d => d.name.includes(datasetType));
   }
 
-  private async generateDownloadLink(dataset: DatasetMetadata, format: string, headers: any): Promise<string> {
+  async generateDownloadLink(dataset, format, headers) {
     try {
       // In real implementation, make API call to get actual download link
       // For now, return the base URL with format parameter
@@ -240,10 +205,10 @@ export class SemanticScholarDatasetsManager {
     }
   }
 
-  async downloadDatasetSample(datasetName: string, sampleSize: number = 1000): Promise<string> {
+  async downloadDatasetSample(datasetName, sampleSize = 1000) {
     try {
       const apiKey = await this.securityManager.retrieveAPIKey('semantic_scholar');
-      const headers: any = {
+      const headers = {
         'User-Agent': 'Autonomous-Scientist/6.0 (Dataset Sample)'
       };
 
@@ -291,13 +256,13 @@ export class SemanticScholarDatasetsManager {
 
       return sampleFile;
 
-    } catch (error: any) {
+    } catch (error) {
       console.error(`Failed to download sample for ${datasetName}:`, error.message);
       throw error;
     }
   }
 
-  async getDatasetUsageStats(): Promise<any> {
+  async getDatasetUsageStats() {
     try {
       const apiKey = await this.securityManager.retrieveAPIKey('semantic_scholar');
       
@@ -329,7 +294,7 @@ export class SemanticScholarDatasetsManager {
 }
 
 // Export function for MCP server
-export async function accessSemanticScholarDatasets(args: DatasetSearchOptions & { _workspace?: string }): Promise<any> {
+async function accessSemanticScholarDatasets(args) {
   const cacheManager = new CacheManager();
   const workspaceDir = args._workspace || path.join(require('os').homedir(), 'Documents', 'Research');
   const datasetsManager = new SemanticScholarDatasetsManager(cacheManager, workspaceDir);
@@ -389,7 +354,7 @@ export async function accessSemanticScholarDatasets(args: DatasetSearchOptions &
   }
 }
 
-export async function downloadDatasetSample(args: { dataset_name: string; sample_size?: number; _workspace?: string }): Promise<any> {
+async function downloadDatasetSample(args) {
   const cacheManager = new CacheManager();
   const workspaceDir = args._workspace || path.join(require('os').homedir(), 'Documents', 'Research');
   const datasetsManager = new SemanticScholarDatasetsManager(cacheManager, workspaceDir);
@@ -438,3 +403,9 @@ export async function downloadDatasetSample(args: { dataset_name: string; sample
     };
   }
 }
+
+module.exports = {
+  SemanticScholarDatasetsManager,
+  accessSemanticScholarDatasets,
+  downloadDatasetSample
+};

@@ -1,76 +1,17 @@
-import axios from 'axios';
-import { SecurityManager } from '../utils/security';
-import { CacheManager } from '../utils/cache-manager';
-import * as xml2js from 'xml2js';
+const axios = require('axios');
+const { SecurityManager } = require('../utils/security.js');
+const { CacheManager } = require('../utils/cache-manager.js');
+const xml2js = require('xml2js');
 
-interface ArXivSearchOptions {
-  query: string;
-  category?: string;
-  author?: string;
-  title?: string;
-  abstract?: string;
-  date_range?: {
-    start_year?: number;
-    end_year?: number;
-    start_date?: string;
-    end_date?: string;
-  };
-  max_results?: number;
-  start?: number;
-  sort_by?: 'relevance' | 'lastUpdatedDate' | 'submittedDate';
-  sort_order?: 'ascending' | 'descending';
-}
 
-interface ArXivPaper {
-  id: string;
-  arxiv_id: string;
-  title: string;
-  authors: Array<{
-    name: string;
-    affiliation?: string;
-  }>;
-  abstract: string;
-  categories: string[];
-  primary_category: string;
-  published_date: string;
-  updated_date: string;
-  doi?: string;
-  journal_ref?: string;
-  pdf_url: string;
-  abs_url: string;
-  comment?: string;
-  msc_class?: string;
-  acm_class?: string;
-  report_no?: string;
-  links: Array<{
-    href: string;
-    rel: string;
-    type: string;
-    title?: string;
-  }>;
-}
-
-interface ArXivSearchResult {
-  query: string;
-  total_results: number;
-  start_index: number;
-  items_per_page: number;
-  papers: ArXivPaper[];
-  search_time: number;
-  categories_found: string[];
-  date_range_covered: {
-    earliest: string;
-    latest: string;
-  };
-}
-
-export class ArXivEnhancedManager {
-  private securityManager: SecurityManager;
-  private cacheManager: CacheManager;
-  private baseUrl = 'http://export.arxiv.org/api/query';
-  
-  // ArXiv subject classifications
-  private subjectClasses: { [key: string]: string } = {
+class ArXivEnhancedManager {
+  constructor(cacheManager) {
+    this.securityManager = new SecurityManager();
+    this.cacheManager = cacheManager;
+    this.baseUrl = 'http://export.arxiv.org/api/query';
+    
+    // ArXiv subject classifications
+    this.subjectClasses = {
     'cs': 'Computer Science',
     'math': 'Mathematics', 
     'physics': 'Physics',
@@ -93,12 +34,8 @@ export class ArXivEnhancedManager {
     'econ': 'Economics'
   };
 
-  constructor(cacheManager: CacheManager) {
-    this.securityManager = new SecurityManager();
-    this.cacheManager = cacheManager;
-  }
 
-  async searchArXivAdvanced(options: ArXivSearchOptions): Promise<ArXivSearchResult> {
+  async searchArXivAdvanced(options) {
     const startTime = Date.now();
     const {
       query,
@@ -166,20 +103,20 @@ export class ArXivEnhancedManager {
       
       return result;
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('ArXiv Enhanced search error:', error.message);
       throw new Error(`ArXiv search failed: ${error.message}`);
     }
   }
 
-  private buildAdvancedQuery(
-    query: string,
-    category?: string, 
-    author?: string,
-    title?: string,
-    abstract?: string,
-    dateRange?: any
-  ): string {
+  buildAdvancedQuery(
+    query,
+    category, 
+    author,
+    title,
+    abstract,
+    dateRange
+  ) {
     const queryParts: string[] = [];
 
     // Main query - search in all fields if no specific field specified
@@ -216,12 +153,7 @@ export class ArXivEnhancedManager {
     return queryParts.join('+AND+');
   }
 
-  private async parseArXivXMLAdvanced(xmlData: string): Promise<{
-    totalResults: number;
-    startIndex: number;
-    itemsPerPage: number;
-    papers: ArXivPaper[];
-  }> {
+  async parseArXivXMLAdvanced(xmlData) {
     try {
       const parser = new xml2js.Parser({ 
         explicitArray: false,
@@ -247,7 +179,7 @@ export class ArXivEnhancedManager {
         entries = [entries];
       }
 
-      const papers: ArXivPaper[] = entries.map((entry: any) => {
+      const papers = entries.map((entry) => {
         // Extract ArXiv ID from entry ID
         const entryId = entry.id || '';
         const arxivId = entryId.split('/abs/')[1] || '';
@@ -324,7 +256,7 @@ export class ArXivEnhancedManager {
     }
   }
 
-  private calculateDateRange(papers: ArXivPaper[]): { earliest: string; latest: string } {
+  calculateDateRange(papers) {
     if (papers.length === 0) {
       return { earliest: '', latest: '' };
     }
@@ -340,10 +272,10 @@ export class ArXivEnhancedManager {
     };
   }
 
-  async getCategoryStatistics(category?: string): Promise<any> {
+  async getCategoryStatistics(category) {
     try {
       // Get recent papers in category for statistics
-      const searchOptions: ArXivSearchOptions = {
+      const searchOptions = {
         query: '*',
         category: category,
         max_results: 200,
@@ -415,7 +347,7 @@ export class ArXivEnhancedManager {
 }
 
 // Export functions for MCP server
-export async function searchArXivAdvanced(args: ArXivSearchOptions & { _workspace?: string }): Promise<any> {
+async function searchArXivAdvanced(args) {
   const cacheManager = new CacheManager();
   const arxivManager = new ArXivEnhancedManager(cacheManager);
 
@@ -487,7 +419,7 @@ export async function searchArXivAdvanced(args: ArXivSearchOptions & { _workspac
   }
 }
 
-export async function getArXivStatistics(args: { category?: string; _workspace?: string }): Promise<any> {
+async function getArXivStatistics(args) {
   const cacheManager = new CacheManager();
   const arxivManager = new ArXivEnhancedManager(cacheManager);
 
@@ -498,11 +430,11 @@ export async function getArXivStatistics(args: { category?: string; _workspace?:
       `${index + 1}. ${cat.name} (${cat.category}): ${cat.count} papers`
     ).join('\n');
 
-    const authorsList = stats.top_authors.slice(0, 10).map((author: any, index: number) =>
+    const authorsList = stats.top_authors.slice(0, 10).map((author, index) =>
       `${index + 1}. ${author.author}: ${author.papers} papers`
     ).join('\n');
 
-    const monthlyData = stats.monthly_submissions.map(([month, count]: [string, number]) =>
+    const monthlyData = stats.monthly_submissions.map(([month, count]) =>
       `${month}: ${count} papers`
     ).join('\n');
 
@@ -545,3 +477,9 @@ export async function getArXivStatistics(args: { category?: string; _workspace?:
     };
   }
 }
+
+module.exports = {
+  ArXivEnhancedManager,
+  searchArXivAdvanced,
+  getArXivStatistics
+};

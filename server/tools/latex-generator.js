@@ -1,54 +1,11 @@
-import * as fs from 'fs-extra';
-import * as path from 'path';
-import { CacheManager } from '../utils/cache-manager';
-import { ErrorHandler } from '../utils/error-handler';
+const fs = require('fs-extra');
+const path = require('path');
+const { CacheManager } = require('../utils/cache-manager.js');
+const { ErrorHandler } = require('../utils/error-handler.js');
 
-interface LaTeXGenerationOptions {
-  title: string;
-  discipline: string;
-  citation_style?: string;
-  paper_type?: 'journal' | 'conference' | 'thesis' | 'chapter';
-  content_sections?: Array<{
-    title: string;
-    content: string;
-    type: 'introduction' | 'methods' | 'results' | 'discussion' | 'conclusion' | 'custom';
-  }>;
-  bibliography?: Array<{
-    type: 'article' | 'book' | 'inproceedings' | 'misc';
-    key: string;
-    title: string;
-    author: string;
-    year: string;
-    journal?: string;
-    pages?: string;
-    doi?: string;
-    url?: string;
-  }>;
-  authors?: Array<{
-    name: string;
-    affiliation: string;
-    email?: string;
-  }>;
-  abstract?: string;
-  keywords?: string[];
-}
 
-interface LaTeXTemplate {
-  discipline: string;
-  style: string;
-  paperType: string;
-  template: string;
-  packages: string[];
-  bibliography_style: string;
-}
-
-export class LaTeXGenerator {
-  private cacheManager: CacheManager;
-  private errorHandler: ErrorHandler;
-  private templatesPath: string;
-  private templates: Map<string, LaTeXTemplate>;
-
-  constructor(cacheManager: CacheManager) {
+class LaTeXGenerator {
+  constructor(cacheManager) {
     this.cacheManager = cacheManager;
     this.errorHandler = new ErrorHandler();
     this.templatesPath = path.join(__dirname, '../../templates');
@@ -56,7 +13,7 @@ export class LaTeXGenerator {
     this.initializeTemplates();
   }
 
-  private initializeTemplates(): void {
+  initializeTemplates() {
     // Psychology templates (APA 7th Edition)
     this.templates.set('psychology:apa:journal', {
       discipline: 'psychology',
@@ -138,7 +95,7 @@ export class LaTeXGenerator {
     });
   }
 
-  async generateLaTeX(options: LaTeXGenerationOptions): Promise<any> {
+  async generateLaTeX(options) {
     try {
       console.error(`📝 Generating LaTeX document: ${options.title} (${options.discipline})`);
 
@@ -206,8 +163,8 @@ export class LaTeXGenerator {
     }
   }
 
-  private getDefaultCitationStyle(discipline: string): string {
-    const defaults: Record<string, string> = {
+  getDefaultCitationStyle(discipline) {
+    const defaults = {
       'psychology': 'apa',
       'neuroscience': 'nature',
       'education': 'apa',
@@ -220,7 +177,7 @@ export class LaTeXGenerator {
     return defaults[discipline] || 'apa';
   }
 
-  private async buildDocument(options: LaTeXGenerationOptions, template: LaTeXTemplate): Promise<string> {
+  async buildDocument(options, template) {
     let content = '';
 
     // Add abstract if provided
@@ -246,7 +203,7 @@ export class LaTeXGenerator {
     return content;
   }
 
-  private generateSection(section: any, discipline: string): string {
+  generateSection(section, discipline) {
     const title = this.escapeLatex(section.title);
     const content = this.escapeLatex(section.content);
     
@@ -271,8 +228,8 @@ export class LaTeXGenerator {
     return sectionContent;
   }
 
-  private generateDefaultSections(discipline: string): string {
-    const sections: Record<string, string> = {
+  generateDefaultSections(discipline) {
+    const sections = {
       'psychology': `
 \\section{Introduction}
 % Literature review and theoretical background
@@ -332,7 +289,7 @@ export class LaTeXGenerator {
     return sections[discipline] || sections['psychology'];
   }
 
-  private generateBibliography(bibliography: any[], style: string): string {
+  generateBibliography(bibliography, style) {
     let bibContent = '';
     
     for (const entry of bibliography) {
@@ -354,7 +311,7 @@ export class LaTeXGenerator {
     return bibContent;
   }
 
-  private generateArticleEntry(entry: any): string {
+  generateArticleEntry(entry) {
     return `@article{${entry.key},
   title={${this.escapeLatex(entry.title)}},
   author={${this.escapeLatex(entry.author)}},
@@ -368,7 +325,7 @@ export class LaTeXGenerator {
 `;
   }
 
-  private generateBookEntry(entry: any): string {
+  generateBookEntry(entry) {
     return `@book{${entry.key},
   title={${this.escapeLatex(entry.title)}},
   author={${this.escapeLatex(entry.author)}},
@@ -381,7 +338,7 @@ export class LaTeXGenerator {
 `;
   }
 
-  private generateConferenceEntry(entry: any): string {
+  generateConferenceEntry(entry) {
     return `@inproceedings{${entry.key},
   title={${this.escapeLatex(entry.title)}},
   author={${this.escapeLatex(entry.author)}},
@@ -394,7 +351,7 @@ export class LaTeXGenerator {
 `;
   }
 
-  private generateMiscEntry(entry: any): string {
+  generateMiscEntry(entry) {
     return `@misc{${entry.key},
   title={${this.escapeLatex(entry.title)}},
   author={${this.escapeLatex(entry.author)}},
@@ -406,12 +363,12 @@ export class LaTeXGenerator {
 `;
   }
 
-  private combineDocumentParts(
-    template: string, 
-    content: string, 
-    bibliography: string, 
-    options: LaTeXGenerationOptions
-  ): string {
+  combineDocumentParts(
+    template, 
+    content, 
+    bibliography, 
+    options
+  ) {
     let document = template;
 
     // Replace placeholders
@@ -435,7 +392,7 @@ ${bibliography}
     return document;
   }
 
-  private formatAuthors(authors: any[]): string {
+  formatAuthors(authors) {
     if (authors.length === 0) return 'Author Name';
     
     return authors.map(author => {
@@ -447,7 +404,7 @@ ${bibliography}
     }).join(' \\and ');
   }
 
-  private escapeLatex(text: string): string {
+  escapeLatex(text) {
     if (!text) return '';
     
     return text
@@ -463,7 +420,7 @@ ${bibliography}
       .replace(/~/g, '\\textasciitilde{}');
   }
 
-  private validateLaTeXSyntax(document: string): { valid: boolean; errors: string[] } {
+  validateLaTeXSyntax(document) {
     const errors: string[] = [];
     
     // Check for unmatched braces
@@ -497,7 +454,7 @@ ${bibliography}
     };
   }
 
-  private estimateWordCount(content: string): number {
+  estimateWordCount(content) {
     // Remove LaTeX commands and count words
     const cleanContent = content
       .replace(/\\[a-zA-Z]+\*?(\[[^\]]*\])?(\{[^}]*\})*\*?/g, ' ')
@@ -509,7 +466,7 @@ ${bibliography}
   }
 
   // Template definitions
-  private getPsychologyAPATemplate(): string {
+  getPsychologyAPATemplate() {
     return `\\documentclass[man,12pt]{apa7}
 \\usepackage[american]{babel}
 \\usepackage{csquotes}
@@ -531,7 +488,7 @@ ${bibliography}
 \\end{document}`;
   }
 
-  private getNeuroscienceNatureTemplate(): string {
+  getNeuroscienceNatureTemplate() {
     return `\\documentclass[10pt,twocolumn]{article}
 \\usepackage{natbib}
 \\usepackage{graphicx}
@@ -554,7 +511,7 @@ ${bibliography}
 \\end{document}`;
   }
 
-  private getEducationAPATemplate(): string {
+  getEducationAPATemplate() {
     return `\\documentclass[man,12pt]{apa7}
 \\usepackage[american]{babel}
 \\usepackage{csquotes}
@@ -576,7 +533,7 @@ ${bibliography}
 \\end{document}`;
   }
 
-  private getSociologyASATemplate(): string {
+  getSociologyASATemplate() {
     return `\\documentclass[12pt]{article}
 \\usepackage{natbib}
 \\usepackage{geometry}
@@ -600,7 +557,7 @@ ${bibliography}
 \\end{document}`;
   }
 
-  private getAnthropologyAAATemplate(): string {
+  getAnthropologyAAATemplate() {
     return `\\documentclass[12pt]{article}
 \\usepackage{natbib}
 \\usepackage{geometry}
@@ -624,7 +581,7 @@ ${bibliography}
 \\end{document}`;
   }
 
-  private getPhilosophyChicagoTemplate(): string {
+  getPhilosophyChicagoTemplate() {
     return `\\documentclass[12pt]{article}
 \\usepackage[authordate,backend=biber]{biblatex-chicago}
 \\usepackage{csquotes}
@@ -648,7 +605,7 @@ ${bibliography}
 \\end{document}`;
   }
 
-  private getPoliticalScienceAPSATemplate(): string {
+  getPoliticalScienceAPSATemplate() {
     return `\\documentclass[12pt]{article}
 \\usepackage{natbib}
 \\usepackage{geometry}
@@ -672,7 +629,7 @@ ${bibliography}
 \\end{document}`;
   }
 
-  private getInternationalRelationsTemplate(): string {
+  getInternationalRelationsTemplate() {
     return `\\documentclass[12pt]{article}
 \\usepackage{natbib}
 \\usepackage{geometry}
@@ -698,7 +655,7 @@ ${bibliography}
 }
 
 // Export function for MCP server
-export async function generateLaTeX(args: LaTeXGenerationOptions): Promise<any> {
+async function generateLaTeX(args) {
   const cacheManager = new CacheManager();
   const generator = new LaTeXGenerator(cacheManager);
   
@@ -747,3 +704,8 @@ export async function generateLaTeX(args: LaTeXGenerationOptions): Promise<any> 
     };
   }
 }
+
+module.exports = {
+  LaTeXGenerator,
+  generateLaTeX
+};

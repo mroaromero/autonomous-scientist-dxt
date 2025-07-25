@@ -1,27 +1,27 @@
-interface MemoryConfig {
-  maxUsage: number;        // Maximum memory usage in bytes (8GB for i3-12100F)
-  chunkSize: number;       // Processing chunk size in bytes (2GB)
-  cacheSize: number;       // Cache size in bytes (2GB)
-  gcThreshold: number;     // GC threshold as percentage (80%)
-}
+// MemoryConfig interface:
+// {
+//   maxUsage: number;        // Maximum memory usage in bytes (8GB for i3-12100F)
+//   chunkSize: number;       // Processing chunk size in bytes (2GB)
+//   cacheSize: number;       // Cache size in bytes (2GB)
+//   gcThreshold: number;     // GC threshold as percentage (80%)
+// }
 
-interface ProcessingTask {
-  id: string;
-  type: 'pdf' | 'ocr' | 'analysis' | 'latex';
-  size: number;
-  priority: 'low' | 'medium' | 'high';
-  startTime: number;
-  timeout: number;
-}
+// ProcessingTask interface:
+// {
+//   id: string;
+//   type: 'pdf' | 'ocr' | 'analysis' | 'latex';
+//   size: number;
+//   priority: 'low' | 'medium' | 'high';
+//   startTime: number;
+//   timeout: number;
+// }
 
-export class MemoryManager {
-  private config: MemoryConfig;
-  private currentUsage: number = 0;
-  private activeTasks: Map<string, ProcessingTask> = new Map();
-  private processingQueue: ProcessingTask[] = [];
-  private gcInterval: NodeJS.Timeout;
-
-  constructor(config: Partial<MemoryConfig> = {}) {
+class MemoryManager {
+  constructor(config = {}) {
+    this.processingQueue = [];
+    this.gcInterval = null;
+    this.currentUsage = 0;
+    this.activeTasks = new Map();
     this.config = {
       maxUsage: config.maxUsage || 8 * 1024 * 1024 * 1024, // 8GB
       chunkSize: config.chunkSize || 2 * 1024 * 1024 * 1024, // 2GB
@@ -38,8 +38,8 @@ export class MemoryManager {
     this.startMemoryMonitoring();
   }
 
-  async allocateMemory(task: Omit<ProcessingTask, 'startTime'>): Promise<string> {
-    const taskWithTime: ProcessingTask = {
+  async allocateMemory(task) {
+    const taskWithTime = {
       ...task,
       startTime: Date.now()
     };
@@ -77,7 +77,7 @@ export class MemoryManager {
     });
   }
 
-  releaseMemory(taskId: string): void {
+  releaseMemory(taskId) {
     const task = this.activeTasks.get(taskId);
     if (task) {
       this.currentUsage -= task.size;
@@ -91,24 +91,24 @@ export class MemoryManager {
     }
   }
 
-  private canAllocate(size: number): boolean {
+  canAllocate(size) {
     const wouldUse = this.currentUsage + size;
     const maxAllowed = this.config.maxUsage * 0.9; // Leave 10% buffer
     return wouldUse <= maxAllowed;
   }
 
-  private getUsagePercentage(): number {
+  getUsagePercentage() {
     return (this.currentUsage / this.config.maxUsage) * 100;
   }
 
-  private formatBytes(bytes: number): string {
+  formatBytes(bytes) {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     if (bytes === 0) return '0 Bytes';
     const i = Math.floor(Math.log(bytes) / Math.log(1024));
     return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
   }
 
-  private performMemoryCleanup(): void {
+  performMemoryCleanup() {
     const usagePercent = this.getUsagePercentage();
     
     if (usagePercent > this.config.gcThreshold) {
@@ -128,7 +128,7 @@ export class MemoryManager {
     }
   }
 
-  private forceGarbageCollection(): void {
+  forceGarbageCollection() {
     if (global.gc) {
       global.gc();
       console.error(`🗑️ Garbage collection triggered`);
@@ -137,7 +137,7 @@ export class MemoryManager {
     }
   }
 
-  private startMemoryMonitoring(): void {
+  startMemoryMonitoring() {
     setInterval(() => {
       const usage = process.memoryUsage();
       const heapUsedMB = Math.round(usage.heapUsed / 1024 / 1024);
@@ -155,12 +155,8 @@ export class MemoryManager {
   }
 
   // Chunk processing for large files
-  async processInChunks<T>(
-    data: Buffer, 
-    processor: (chunk: Buffer, index: number) => Promise<T>,
-    taskId: string
-  ): Promise<T[]> {
-    const chunks: Buffer[] = [];
+  async processInChunks(data, processor, taskId) {
+    const chunks = [];
     const chunkSize = Math.min(this.config.chunkSize, data.length);
     
     // Split data into chunks
@@ -170,7 +166,7 @@ export class MemoryManager {
     
     console.error(`📦 Processing ${chunks.length} chunks for task ${taskId}`);
     
-    const results: T[] = [];
+    const results = [];
     
     // Process chunks sequentially to manage memory
     for (let i = 0; i < chunks.length; i++) {
@@ -197,7 +193,7 @@ export class MemoryManager {
   }
 
   // Get optimal concurrency based on current memory usage
-  getOptimalConcurrency(): number {
+  getOptimalConcurrency() {
     const usagePercent = this.getUsagePercentage();
     
     if (usagePercent < 50) {
@@ -210,20 +206,13 @@ export class MemoryManager {
   }
 
   // Check if system can handle a specific operation
-  canHandleOperation(estimatedMemoryMB: number): boolean {
+  canHandleOperation(estimatedMemoryMB) {
     const estimatedBytes = estimatedMemoryMB * 1024 * 1024;
     return this.canAllocate(estimatedBytes);
   }
 
   // Get memory statistics
-  getMemoryStats(): {
-    currentUsage: string;
-    usagePercentage: number;
-    activeTasks: number;
-    queuedTasks: number;
-    chunkSize: string;
-    maxUsage: string;
-  } {
+  getMemoryStats() {
     return {
       currentUsage: this.formatBytes(this.currentUsage),
       usagePercentage: this.getUsagePercentage(),
@@ -235,7 +224,7 @@ export class MemoryManager {
   }
 
   // Clean shutdown
-  shutdown(): void {
+  shutdown() {
     clearInterval(this.gcInterval);
     
     // Release all active tasks
@@ -249,3 +238,5 @@ export class MemoryManager {
     console.error('🔌 Memory Manager shut down');
   }
 }
+
+module.exports = { MemoryManager };

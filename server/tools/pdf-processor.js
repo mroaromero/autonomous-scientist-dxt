@@ -1,66 +1,24 @@
-import * as fs from 'fs-extra';
-import * as path from 'path';
-import pdfParse from 'pdf-parse';
-import Tesseract from 'tesseract.js';
-import sharp from 'sharp';
-import { MemoryManager } from '../utils/memory-manager';
-import { LanguageDetector } from '../utils/language-detector';
-import { ErrorHandler } from '../utils/error-handler';
+const fs = require('fs-extra');
+const path = require('path');
+const pdfParse = require('pdf-parse');
+const Tesseract = require('tesseract.js');
+const sharp = require('sharp');
+const { MemoryManager } = require('../utils/memory-manager.js');
+const { LanguageDetector } = require('../utils/language-detector.js');
+const { ErrorHandler } = require('../utils/error-handler.js');
 
-interface PDFProcessingOptions {
-  file_path: string;
-  language?: string;
-  quality_enhancement?: boolean;
-  extract_metadata?: boolean;
-  ocr_mode?: 'auto' | 'force' | 'skip';
-  discipline?: string;
-}
-
-interface PDFProcessingResult {
-  success: boolean;
-  content: {
-    text: string;
-    metadata: any;
-    pages: Array<{
-      pageNumber: number;
-      text: string;
-      hasImages: boolean;
-      ocrApplied: boolean;
-      confidence?: number;
-    }>;
-    statistics: {
-      totalPages: number;
-      totalWords: number;
-      ocrPages: number;
-      processingTime: number;
-      language: string;
-    };
-    extracted_elements: {
-      citations: string[];
-      figures: Array<{ page: number; caption: string; type: string }>;
-      tables: Array<{ page: number; caption: string; data?: any }>;
-      equations: string[];
-    };
-  };
-  errors: string[];
-}
-
-export class PDFProcessor {
-  private memoryManager: MemoryManager;
-  private languageDetector: LanguageDetector;
-  private errorHandler: ErrorHandler;
-
-  constructor(memoryManager: MemoryManager) {
+class PDFProcessor {
+  constructor(memoryManager) {
     this.memoryManager = memoryManager;
     this.languageDetector = new LanguageDetector();
     this.errorHandler = new ErrorHandler();
   }
 
-  async processPDF(options: PDFProcessingOptions): Promise<PDFProcessingResult> {
+  async processPDF(options) {
     const startTime = Date.now();
     const taskId = `pdf-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
-    const result: PDFProcessingResult = {
+    const result = {
       success: false,
       content: {
         text: '',
@@ -154,7 +112,7 @@ export class PDFProcessor {
       result.success = true;
       console.error(`✅ PDF processing complete: ${result.content.statistics.totalWords} words in ${(result.content.statistics.processingTime / 1000).toFixed(1)}s`);
 
-    } catch (error: any) {
+    } catch (error) {
       result.errors.push(this.errorHandler.formatError(error));
       console.error(`❌ PDF processing failed:`, error.message);
     } finally {
@@ -165,7 +123,7 @@ export class PDFProcessor {
     return result;
   }
 
-  private determineOCRNeed(pdfData: any, ocrMode?: string): boolean {
+  determineOCRNeed(pdfData, ocrMode) {
     if (ocrMode === 'force') return true;
     if (ocrMode === 'skip') return false;
     
@@ -178,12 +136,12 @@ export class PDFProcessor {
     return avgCharsPerPage < 100;
   }
 
-  private async performOCRProcessing(
-    pdfBuffer: Buffer, 
-    result: PDFProcessingResult, 
-    language: string, 
-    taskId: string
-  ): Promise<void> {
+  async performOCRProcessing(
+    pdfBuffer, 
+    result, 
+    language, 
+    taskId
+  ) {
     try {
       // Convert PDF pages to images using pdf-poppler (would need to be installed)
       // For now, we'll simulate OCR processing with Tesseract
@@ -191,7 +149,7 @@ export class PDFProcessor {
       // Configure Tesseract for academic documents
       const tesseractOptions = {
         lang: this.mapLanguageToTesseract(language),
-        logger: (m: any) => {
+        logger: (m) => {
           if (m.status === 'recognizing text') {
             console.error(`🔍 OCR Progress: ${(m.progress * 100).toFixed(1)}%`);
           }
@@ -227,8 +185,8 @@ export class PDFProcessor {
     }
   }
 
-  private mapLanguageToTesseract(language: string): string {
-    const langMap: Record<string, string> = {
+  mapLanguageToTesseract(language) {
+    const langMap = {
       'en': 'eng',
       'es': 'spa', 
       'de': 'deu',
@@ -246,12 +204,12 @@ export class PDFProcessor {
     return langMap[language] || 'eng';
   }
 
-  private getCharacterWhitelist(language: string): string {
+  getCharacterWhitelist(language) {
     // Base Latin characters
     let whitelist = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,;:!?()[]{}"\'-/\\@#$%&*+=<>|~`^_';
     
     // Add language-specific characters
-    const languageChars: Record<string, string> = {
+    const languageChars = {
       'es': 'ñáéíóúüÑÁÉÍÓÚÜ¿¡',
       'de': 'äöüßÄÖÜ',
       'fr': 'àâäéèêëïîôùûüÿçÀÂÄÉÈÊËÏÎÔÙÛÜŸÇ',
@@ -266,12 +224,7 @@ export class PDFProcessor {
     return whitelist;
   }
 
-  private createPageStructure(text: string, pageCount: number): Array<{
-    pageNumber: number;
-    text: string;
-    hasImages: boolean;
-    ocrApplied: boolean;
-  }> {
+  createPageStructure(text, pageCount) {
     // Simple page splitting - in practice would need more sophisticated logic
     const avgCharsPerPage = Math.ceil(text.length / pageCount);
     const pages = [];
@@ -291,11 +244,11 @@ export class PDFProcessor {
     return pages;
   }
 
-  private async extractAcademicElements(
-    text: string, 
-    elements: PDFProcessingResult['content']['extracted_elements'],
-    discipline?: string
-  ): Promise<void> {
+  async extractAcademicElements(
+    text, 
+    elements,
+    discipline
+  ) {
     try {
       // Extract citations using regex patterns
       elements.citations = this.extractCitations(text);
@@ -314,8 +267,8 @@ export class PDFProcessor {
     }
   }
 
-  private extractCitations(text: string): string[] {
-    const citations: string[] = [];
+  extractCitations(text) {
+    const citations = [];
     
     // Various citation patterns
     const patterns = [
@@ -340,8 +293,8 @@ export class PDFProcessor {
     return [...new Set(citations)];
   }
 
-  private extractFigures(text: string): Array<{ page: number; caption: string; type: string }> {
-    const figures: Array<{ page: number; caption: string; type: string }> = [];
+  extractFigures(text) {
+    const figures = [];
     
     // Patterns for figure captions
     const figurePatterns = [
@@ -365,8 +318,8 @@ export class PDFProcessor {
     return figures;
   }
 
-  private extractTables(text: string): Array<{ page: number; caption: string; data?: any }> {
-    const tables: Array<{ page: number; caption: string; data?: any }> = [];
+  extractTables(text) {
+    const tables = [];
     
     // Patterns for table captions
     const tablePatterns = [
@@ -388,8 +341,8 @@ export class PDFProcessor {
     return tables;
   }
 
-  private extractEquations(text: string): string[] {
-    const equations: string[] = [];
+  extractEquations(text) {
+    const equations = [];
     
     // LaTeX equation patterns
     const equationPatterns = [
@@ -410,7 +363,7 @@ export class PDFProcessor {
 }
 
 // Export function for MCP server
-export async function processPDF(args: PDFProcessingOptions, memoryManager: MemoryManager): Promise<any> {
+async function processPDF(args, memoryManager) {
   const processor = new PDFProcessor(memoryManager);
   const result = await processor.processPDF(args);
   
@@ -450,3 +403,8 @@ export async function processPDF(args: PDFProcessingOptions, memoryManager: Memo
     };
   }
 }
+
+module.exports = {
+  PDFProcessor,
+  processPDF
+};
