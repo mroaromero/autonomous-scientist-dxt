@@ -74,7 +74,7 @@ autonomous-scientist.dxt (archivo ZIP)
 
 ```bash
 # En tu terminal, navega al directorio del proyecto:
-cd "C:\Users\manuel.roa\Proyecto_Tesis_Automatizada\autonomous-scientist-extension"
+cd "path/to/autonomous-scientist-extension""
 
 # 1. Instalar DXT CLI globalmente (solo una vez)
 npm install -g @anthropic-ai/dxt
