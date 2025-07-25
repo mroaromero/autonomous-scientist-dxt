@@ -23,6 +23,8 @@ const { searchLiterature } = require('./tools/literature-search.js');
 const { analyzeByDiscipline } = require('./tools/discipline-analyzer.js');
 const { generateLaTeX } = require('./tools/latex-generator.js');
 const { accessSemanticScholarDatasets, downloadDatasetSample } = require('./tools/semantic-scholar-datasets.js');
+const { searchArXivAdvanced, getArXivStatistics } = require('./tools/arxiv-enhanced.js');
+const { accessCrossRefDataFile, downloadCrossRefSample, getCrossRefDataInfo } = require('./tools/crossref-labs-data.js');
 const { MemoryManager } = require('./utils/memory-manager.js');
 const { ErrorHandler } = require('./utils/error-handler.js');
 const { CacheManager } = require('./utils/cache-manager.js');
@@ -154,6 +156,20 @@ class AutonomousScientistServer {
         return await downloadDatasetSample(enrichedArgs);
       case 'get_paper_recommendations':
         return await this.getPaperRecommendations(enrichedArgs);
+      
+      // ArXiv Enhanced
+      case 'search_arxiv_advanced':
+        return await searchArXivAdvanced(enrichedArgs);
+      case 'get_arxiv_statistics':
+        return await getArXivStatistics(enrichedArgs);
+      
+      // CrossRef Labs Data
+      case 'access_crossref_data_file':
+        return await accessCrossRefDataFile(enrichedArgs);
+      case 'download_crossref_sample':
+        return await downloadCrossRefSample(enrichedArgs);
+      case 'get_crossref_data_info':
+        return await getCrossRefDataInfo(enrichedArgs);
       
       // LaTeX Generation
       case 'generate_latex_paper':
@@ -502,6 +518,91 @@ Let's start by processing the PDF. Please execute process_academic_pdf with:
             max_results: { type: 'number', default: 50, maximum: 200 }
           },
           required: ['query']
+        }
+      },
+      
+      // ArXiv Enhanced Tools
+      {
+        name: 'search_arxiv_advanced',
+        description: 'Advanced ArXiv search with full metadata, categories, and XML parsing',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            query: { type: 'string', description: 'Main search query' },
+            category: { type: 'string', description: 'ArXiv category (e.g., cs.LG, math.CO, physics.gen-ph)' },
+            author: { type: 'string', description: 'Author name' },
+            title: { type: 'string', description: 'Title search' },
+            abstract: { type: 'string', description: 'Abstract search' },
+            date_range: {
+              type: 'object',
+              properties: {
+                start_year: { type: 'number' },
+                end_year: { type: 'number' },
+                start_date: { type: 'string', format: 'date' },
+                end_date: { type: 'string', format: 'date' }
+              }
+            },
+            max_results: { type: 'number', default: 50, maximum: 200 },
+            sort_by: { type: 'string', enum: ['relevance', 'lastUpdatedDate', 'submittedDate'], default: 'relevance' },
+            sort_order: { type: 'string', enum: ['ascending', 'descending'], default: 'descending' }
+          },
+          required: ['query']
+        }
+      },
+      {
+        name: 'get_arxiv_statistics',
+        description: 'Get ArXiv submission statistics and trends by category',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            category: { type: 'string', description: 'Specific ArXiv category for focused statistics' }
+          }
+        }
+      },
+      
+      // CrossRef Labs Data Tools
+      {
+        name: 'access_crossref_data_file',
+        description: 'Access CrossRef annual data files with comprehensive publication metadata',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            year: { type: 'number', minimum: 2015, maximum: 2024, default: 2023 },
+            data_type: { type: 'string', enum: ['works', 'journals', 'publishers', 'funders', 'all'], default: 'works' },
+            format: { type: 'string', enum: ['json', 'csv', 'parquet'], default: 'json' },
+            sample_size: { type: 'number', default: 1000, maximum: 5000 },
+            filters: {
+              type: 'object',
+              properties: {
+                publisher: { type: 'string' },
+                funder: { type: 'string' },
+                type: { type: 'string' },
+                has_doi: { type: 'boolean' },
+                has_full_text: { type: 'boolean' },
+                has_orcid: { type: 'boolean' }
+              }
+            }
+          }
+        }
+      },
+      {
+        name: 'download_crossref_sample',
+        description: 'Download CrossRef data file sample for local analysis',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            year: { type: 'number', minimum: 2015, maximum: 2024 },
+            data_type: { type: 'string', enum: ['works', 'journals', 'publishers', 'funders'] }
+          },
+          required: ['year', 'data_type']
+        }
+      },
+      {
+        name: 'get_crossref_data_info',
+        description: 'Get information about available CrossRef data files and formats',
+        inputSchema: {
+          type: 'object',
+          properties: {}
         }
       },
       

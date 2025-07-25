@@ -8,7 +8,9 @@
       "Bash(git add:*)",
       "Bash(git push:*)",
       "WebFetch(domain:api.crossref.org)",
-      "WebFetch(domain:api.semanticscholar.org)"
+      "WebFetch(domain:api.semanticscholar.org)",
+      "WebFetch(domain:info.arxiv.org)",
+      "WebFetch(domain:gitlab.com)"
     ],
     "deny": []
   }
