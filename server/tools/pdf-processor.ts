@@ -3,9 +3,9 @@ import * as path from 'path';
 import pdfParse from 'pdf-parse';
 import Tesseract from 'tesseract.js';
 import sharp from 'sharp';
-import { MemoryManager } from '../utils/memory-manager.js';
-import { LanguageDetector } from '../utils/language-detector.js';
-import { ErrorHandler } from '../utils/error-handler.js';
+import { MemoryManager } from '../utils/memory-manager';
+import { LanguageDetector } from '../utils/language-detector';
+import { ErrorHandler } from '../utils/error-handler';
 
 interface PDFProcessingOptions {
   file_path: string;

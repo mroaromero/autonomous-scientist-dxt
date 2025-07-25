@@ -38,7 +38,7 @@ export class SecurityManager {
     
     if (fs.existsSync(keyFile)) {
       // Read existing key
-      const keyData = await fs.readFile(keyFile);
+      const keyData = await fs.readFile(keyFile, 'utf8');
       this.masterKey = Buffer.from(keyData, 'hex');
     } else {
       // Generate new master key
@@ -61,16 +61,14 @@ export class SecurityManager {
       const key = crypto.pbkdf2Sync(masterKey, salt, 100000, 32, 'sha256');
       
       // Encrypt the API key
-      const cipher = crypto.createCipher('aes-256-gcm', key);
-      cipher.setAAD(Buffer.from(service, 'utf8'));
+      const cipher = crypto.createCipher('aes-256-cbc', key);
       
       let encrypted = cipher.update(apiKey, 'utf8', 'hex');
       encrypted += cipher.final('hex');
-      const authTag = cipher.getAuthTag();
       
       // Prepare storage object
       const storageData: EncryptedStorage = {
-        data: encrypted + ':' + authTag.toString('hex'),
+        data: encrypted,
         iv: iv.toString('hex'),
         salt: salt.toString('hex'),
         timestamp: new Date().toISOString()
@@ -117,17 +115,13 @@ export class SecurityManager {
       
       // Reconstruct encryption components
       const salt = Buffer.from(serviceData.salt, 'hex');
-      const iv = Buffer.from(serviceData.iv, 'hex');
-      const [encryptedData, authTagHex] = serviceData.data.split(':');
-      const authTag = Buffer.from(authTagHex, 'hex');
+      const encryptedData = serviceData.data;
       
       // Derive the same encryption key
       const key = crypto.pbkdf2Sync(masterKey, salt, 100000, 32, 'sha256');
       
       // Decrypt the API key
-      const decipher = crypto.createDecipher('aes-256-gcm', key);
-      decipher.setAAD(Buffer.from(service, 'utf8'));
-      decipher.setAuthTag(authTag);
+      const decipher = crypto.createDecipher('aes-256-cbc', key);
       
       let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
       decrypted += decipher.final('utf8');

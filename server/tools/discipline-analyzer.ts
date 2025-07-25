@@ -1,5 +1,5 @@
-import { LanguageDetector } from '../utils/language-detector.js';
-import { CacheManager } from '../utils/cache-manager.js';
+import { LanguageDetector } from '../utils/language-detector';
+import { CacheManager } from '../utils/cache-manager';
 
 interface DisciplineAnalysisOptions {
   content: string;

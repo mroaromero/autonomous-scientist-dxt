@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { SecurityManager } from '../utils/security.js';
-import { CacheManager } from '../utils/cache-manager.js';
+import { SecurityManager } from '../utils/security';
+import { CacheManager } from '../utils/cache-manager';
 import * as xml2js from 'xml2js';
 
 interface ArXivSearchOptions {
@@ -70,7 +70,7 @@ export class ArXivEnhancedManager {
   private baseUrl = 'http://export.arxiv.org/api/query';
   
   // ArXiv subject classifications
-  private subjectClasses = {
+  private subjectClasses: { [key: string]: string } = {
     'cs': 'Computer Science',
     'math': 'Mathematics', 
     'physics': 'Physics',
@@ -85,7 +85,6 @@ export class ArXivEnhancedManager {
     'nlin': 'Nonlinear Sciences',
     'nucl-ex': 'Nuclear Experiment',
     'nucl-th': 'Nuclear Theory',
-    'physics': 'Physics',
     'quant-ph': 'Quantum Physics',
     'q-bio': 'Quantitative Biology',
     'q-fin': 'Quantitative Finance',

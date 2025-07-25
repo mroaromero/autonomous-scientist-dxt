@@ -1,7 +1,7 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { CacheManager } from '../utils/cache-manager.js';
-import { ErrorHandler } from '../utils/error-handler.js';
+import { CacheManager } from '../utils/cache-manager';
+import { ErrorHandler } from '../utils/error-handler';
 
 interface LaTeXGenerationOptions {
   title: string;

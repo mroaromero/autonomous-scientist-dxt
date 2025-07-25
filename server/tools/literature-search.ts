@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { SecurityManager } from '../utils/security.js';
-import { CacheManager } from '../utils/cache-manager.js';
+import { SecurityManager } from '../utils/security';
+import { CacheManager } from '../utils/cache-manager';
 
 interface LiteratureSearchOptions {
   query: string;
@@ -232,7 +232,7 @@ export class LiteratureSearchManager {
         (topPaper as any).recommendations = recommendationResponse.data.recommendedPapers;
       }
     } catch (error) {
-      console.error('Failed to get recommendations:', error.message);
+      console.error('Failed to get recommendations:', error instanceof Error ? error.message : 'Unknown error');
       // Non-critical error, continue without recommendations
     }
   }
@@ -388,13 +388,13 @@ export class LiteratureSearchManager {
           }
         } catch (error) {
           // Non-critical error, continue
-          console.error(`Failed to enrich ${result.doi}:`, error.message);
+          console.error(`Failed to enrich ${result.doi}:`, error instanceof Error ? error.message : 'Unknown error');
         }
       });
 
       await Promise.allSettled(enrichPromises);
     } catch (error) {
-      console.error('Failed to enrich CrossRef results:', error.message);
+      console.error('Failed to enrich CrossRef results:', error instanceof Error ? error.message : 'Unknown error');
     }
   }
 

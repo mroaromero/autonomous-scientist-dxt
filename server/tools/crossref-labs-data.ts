@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { SecurityManager } from '../utils/security.js';
-import { CacheManager } from '../utils/cache-manager.js';
+import { SecurityManager } from '../utils/security';
+import { CacheManager } from '../utils/cache-manager';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 
@@ -125,7 +125,7 @@ export class CrossRefLabsDataManager {
         file_info: dataFileInfo.file_info,
         sample_data: sampleData.slice(0, 10), // Show only first 10 for display
         statistics,
-        data_quality
+        data_quality: dataQuality
       };
 
       // Cache the results

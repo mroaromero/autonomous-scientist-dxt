@@ -1,4 +1,4 @@
-import { SecurityManager } from '../utils/security.js';
+import { SecurityManager } from '../utils/security';
 import axios from 'axios';
 
 interface APIConfiguration {

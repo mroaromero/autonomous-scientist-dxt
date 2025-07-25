@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { SecurityManager } from '../utils/security.js';
-import { CacheManager } from '../utils/cache-manager.js';
+import { SecurityManager } from '../utils/security';
+import { CacheManager } from '../utils/cache-manager';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 

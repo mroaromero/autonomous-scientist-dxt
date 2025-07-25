@@ -10,7 +10,14 @@
       "WebFetch(domain:api.crossref.org)",
       "WebFetch(domain:api.semanticscholar.org)",
       "WebFetch(domain:info.arxiv.org)",
-      "WebFetch(domain:gitlab.com)"
+      "WebFetch(domain:gitlab.com)",
+      "Bash(git commit:*)",
+      "Bash(node:*)",
+      "Bash(npm audit:*)",
+      "Bash(npm outdated)",
+      "Bash(npx tsc:*)",
+      "Bash(ls:*)",
+      "Bash(timeout:*)"
     ],
     "deny": []
   }
