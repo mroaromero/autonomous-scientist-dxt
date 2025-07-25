@@ -11,7 +11,15 @@
     "lint": "echo 'Linting disabled for now'",
     "pack": "echo 'Packing extension...' && echo 'Note: Install @anthropic-ai/dxt globally first: npm install -g @anthropic-ai/dxt'",
     "install-cli": "npm install -g @anthropic-ai/dxt",
-    "prepare-dxt": "npm run build && npm run pack"
+    "prepare-dxt": "npm run build && npm run pack",
+    "setup": "node scripts/auto-install.js",
+    "configure-apis": "node scripts/configure-apis.js",
+    "install-mcps": "node scripts/mcp-installer.js",
+    "validate": "node scripts/system-validator.js",
+    "validate:quick": "node scripts/system-validator.js --quick",
+    "diagnose": "node scripts/mcp-installer.js --diagnose",
+    "install:complete": "npm install && npm run setup && npm run install-mcps && npm run validate",
+    "postinstall": "node -e \"console.log('\\n🚀 Para completar la instalación, ejecute: npm run setup\\n')\""
   },
   "keywords": [
     "research",

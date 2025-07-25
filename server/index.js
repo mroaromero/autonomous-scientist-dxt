@@ -73,9 +73,7 @@ class AutonomousScientistServer {
       
       // API keys (handled securely by DXT)
       semantic_scholar_api_key: process.env.USER_CONFIG_SEMANTIC_SCHOLAR_API_KEY,
-      crossref_api_key: process.env.USER_CONFIG_CROSSREF_API_KEY,
-      openai_api_key: process.env.USER_CONFIG_OPENAI_API_KEY,
-      anthropic_api_key: process.env.USER_CONFIG_ANTHROPIC_API_KEY
+      crossref_api_key: process.env.USER_CONFIG_CROSSREF_API_KEY
     };
     
     // Ensure workspace directory exists
@@ -298,7 +296,7 @@ Let's start by processing the PDF. Please execute process_academic_pdf with:
         inputSchema: {
           type: 'object',
           properties: {
-            service: { type: 'string', enum: ['semantic_scholar', 'crossref', 'openai', 'anthropic'] },
+            service: { type: 'string', enum: ['semantic_scholar', 'crossref'] },
             key: { type: 'string' }
           },
           required: ['service', 'key']

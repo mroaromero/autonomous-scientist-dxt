@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "Bash(npm install:*)",
+      "Bash(dxt pack:*)",
+      "Bash(dxt validate:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": []
+  }
+}
