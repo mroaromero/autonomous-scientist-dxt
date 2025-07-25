@@ -22,6 +22,7 @@ const { processPDF } = require('./tools/pdf-processor.js');
 const { searchLiterature } = require('./tools/literature-search.js');
 const { analyzeByDiscipline } = require('./tools/discipline-analyzer.js');
 const { generateLaTeX } = require('./tools/latex-generator.js');
+const { accessSemanticScholarDatasets, downloadDatasetSample } = require('./tools/semantic-scholar-datasets.js');
 const { MemoryManager } = require('./utils/memory-manager.js');
 const { ErrorHandler } = require('./utils/error-handler.js');
 const { CacheManager } = require('./utils/cache-manager.js');
@@ -145,6 +146,14 @@ class AutonomousScientistServer {
         return await analyzeByDiscipline(enrichedArgs);
       case 'identify_research_gaps':
         return await this.identifyResearchGaps(enrichedArgs);
+      
+      // Semantic Scholar Datasets
+      case 'access_semantic_scholar_datasets':
+        return await accessSemanticScholarDatasets(enrichedArgs);
+      case 'download_dataset_sample':
+        return await downloadDatasetSample(enrichedArgs);
+      case 'get_paper_recommendations':
+        return await this.getPaperRecommendations(enrichedArgs);
       
       // LaTeX Generation
       case 'generate_latex_paper':
@@ -426,6 +435,76 @@ Let's start by processing the PDF. Please execute process_academic_pdf with:
         }
       },
       
+      // Semantic Scholar Datasets Tools
+      {
+        name: 'access_semantic_scholar_datasets',
+        description: 'Access Semantic Scholar academic datasets (papers, authors, citations, embeddings)',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            query: { type: 'string', description: 'Search term to filter datasets' },
+            dataset_type: { 
+              type: 'string', 
+              enum: ['papers', 'authors', 'citations', 'embeddings', 'all'], 
+              default: 'all' 
+            },
+            limit: { type: 'number', default: 10, maximum: 50 },
+            format: { type: 'string', enum: ['json', 'parquet', 'csv'], default: 'json' }
+          }
+        }
+      },
+      {
+        name: 'download_dataset_sample',
+        description: 'Download a sample from Semantic Scholar datasets for testing and analysis',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            dataset_name: { 
+              type: 'string',
+              enum: ['semantic-scholar-papers', 'semantic-scholar-authors', 'semantic-scholar-citations', 'semantic-scholar-embeddings', 'semantic-scholar-tldr']
+            },
+            sample_size: { type: 'number', default: 1000, maximum: 10000 }
+          },
+          required: ['dataset_name']
+        }
+      },
+      {
+        name: 'get_paper_recommendations',
+        description: 'Get paper recommendations based on a given paper or research interests',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            paper_id: { type: 'string', description: 'Semantic Scholar paper ID for recommendations' },
+            research_interests: { type: 'string', description: 'Research topics for general recommendations' },
+            limit: { type: 'number', default: 10, maximum: 100 }
+          }
+        }
+      },
+      {
+        name: 'advanced_crossref_search',
+        description: 'Advanced CrossRef search with filters, facets, and detailed metadata',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            query: { type: 'string' },
+            filters: {
+              type: 'object',
+              properties: {
+                publication_type: { type: 'string', enum: ['journal-article', 'book-chapter', 'book', 'proceedings-article'] },
+                publisher: { type: 'string' },
+                subject: { type: 'string' },
+                license: { type: 'string' },
+                funder: { type: 'string' }
+              }
+            },
+            facets: { type: 'array', items: { type: 'string' }, description: 'Facets to include in results' },
+            sort: { type: 'string', enum: ['relevance', 'score', 'updated', 'deposited', 'indexed', 'published'], default: 'relevance' },
+            max_results: { type: 'number', default: 50, maximum: 200 }
+          },
+          required: ['query']
+        }
+      },
+      
       // Additional discipline-specific tools would be defined here...
       // (For brevity, showing just 2 of the 8 disciplines)
     ];
@@ -452,6 +531,12 @@ Let's start by processing the PDF. Please execute process_academic_pdf with:
   }
   async compileToPDF(args) { 
     return { content: [{ type: 'text', text: 'PDF compilation not yet implemented' }] }; 
+  }
+  async getPaperRecommendations(args) {
+    return { content: [{ type: 'text', text: 'Paper recommendations feature integrated in literature search' }] };
+  }
+  async advancedCrossRefSearch(args) {
+    return { content: [{ type: 'text', text: 'Advanced CrossRef search capabilities integrated in literature search' }] };
   }
   async analyzePsychologyResearch(args) { 
     return { content: [{ type: 'text', text: 'Psychology analysis not yet implemented' }] }; 

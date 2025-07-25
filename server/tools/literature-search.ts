@@ -158,14 +158,14 @@ export class LiteratureSearchManager {
       };
       
       if (apiKey) {
-        headers['Authorization'] = `Bearer ${apiKey}`;
+        headers['x-api-key'] = apiKey;
       }
 
-      // Build query parameters
+      // Build query parameters with enhanced Graph API fields
       const params: any = {
         query: query,
         limit: Math.min(maxResults, 100), // API limit
-        fields: 'paperId,title,authors,year,abstract,journal,citationCount,openAccessPdf,url,venue'
+        fields: 'paperId,title,authors,year,abstract,journal,citationCount,openAccessPdf,url,venue,externalIds,publicationTypes,s2FieldsOfStudy,publicationDate,influentialCitationCount,embedding'
       };
 
       if (dateRange?.start_year) {
@@ -178,7 +178,7 @@ export class LiteratureSearchManager {
         timeout: 30000
       });
 
-      return response.data.data.map((paper: any) => ({
+      const results = response.data.data.map((paper: any) => ({
         id: paper.paperId,
         title: paper.title || 'Untitled',
         authors: paper.authors?.map((a: any) => a.name) || ['Unknown'],
@@ -188,10 +188,21 @@ export class LiteratureSearchManager {
         doi: paper.externalIds?.DOI,
         url: paper.url,
         citation_count: paper.citationCount,
+        influential_citation_count: paper.influentialCitationCount,
         pdf_url: paper.openAccessPdf?.url,
         source: 'semantic_scholar',
-        relevance_score: paper.citationCount || 0
+        relevance_score: (paper.citationCount || 0) + (paper.influentialCitationCount || 0) * 2,
+        fields_of_study: paper.s2FieldsOfStudy?.map((f: any) => f.category) || [],
+        publication_types: paper.publicationTypes || [],
+        publication_date: paper.publicationDate
       }));
+
+      // If we have good results, try to get recommendations for top papers
+      if (results.length > 0 && apiKey) {
+        await this.enrichWithRecommendations(results.slice(0, 3), headers);
+      }
+
+      return results;
 
     } catch (error: any) {
       console.error('Semantic Scholar search error:', error.message);
@@ -199,6 +210,30 @@ export class LiteratureSearchManager {
         throw new Error('Semantic Scholar rate limit exceeded. Please try again later.');
       }
       return [];
+    }
+  }
+
+  private async enrichWithRecommendations(topPapers: SearchResult[], headers: any): Promise<void> {
+    try {
+      // Get recommendations for the most relevant paper
+      const topPaper = topPapers[0];
+      const recommendationResponse = await axios.get(
+        `https://api.semanticscholar.org/recommendations/v1/papers/forpaper/${topPaper.id}`,
+        {
+          headers,
+          params: { limit: 5, fields: 'title,authors,year,citationCount' },
+          timeout: 10000
+        }
+      );
+
+      if (recommendationResponse.data.recommendedPapers) {
+        console.error(`📈 Found ${recommendationResponse.data.recommendedPapers.length} related papers`);
+        // Store recommendations in the paper object for later use
+        (topPaper as any).recommendations = recommendationResponse.data.recommendedPapers;
+      }
+    } catch (error) {
+      console.error('Failed to get recommendations:', error.message);
+      // Non-critical error, continue without recommendations
     }
   }
 
@@ -255,22 +290,32 @@ export class LiteratureSearchManager {
     try {
       const apiKey = await this.securityManager.retrieveAPIKey('crossref');
       const headers: any = {
-        'User-Agent': 'Autonomous-Scientist/6.0 (mailto:research@example.com)' // Polite pool
+        'User-Agent': 'Autonomous-Scientist/6.0 (mailto:research@autonomous-scientist.com)' // Polite pool
       };
 
       if (apiKey) {
         headers['Authorization'] = `Bearer ${apiKey}`;
       }
 
+      // Enhanced CrossRef API parameters with more filtering options
       const params: any = {
         query: query,
         rows: Math.min(maxResults, 100),
         sort: 'relevance',
-        order: 'desc'
+        order: 'desc',
+        select: 'DOI,title,author,published,abstract,container-title,URL,is-referenced-by-count,subject,type,publisher,ISSN,ISBN,volume,issue,page,funder,license,reference-count,update-policy'
       };
 
+      // Enhanced date filtering
       if (dateRange?.start_year) {
-        params['filter'] = `from-pub-date:${dateRange.start_year},until-pub-date:${dateRange.end_year || new Date().getFullYear()}`;
+        const filters = [];
+        filters.push(`from-pub-date:${dateRange.start_year}`);
+        if (dateRange.end_year) {
+          filters.push(`until-pub-date:${dateRange.end_year}`);
+        }
+        // Add type filters for academic content
+        filters.push('type:journal-article,book-chapter,book,proceedings-article');
+        params['filter'] = filters.join(',');
       }
 
       const response = await axios.get('https://api.crossref.org/works', {
@@ -279,7 +324,7 @@ export class LiteratureSearchManager {
         timeout: 30000
       });
 
-      return response.data.message.items.map((item: any) => ({
+      const results = response.data.message.items.map((item: any) => ({
         id: item.DOI,
         title: item.title?.[0] || 'Untitled',
         authors: item.author?.map((a: any) => `${a.given || ''} ${a.family || ''}`.trim()) || ['Unknown'],
@@ -289,13 +334,67 @@ export class LiteratureSearchManager {
         doi: item.DOI,
         url: item.URL,
         citation_count: item['is-referenced-by-count'],
+        reference_count: item['reference-count'],
+        publisher: item.publisher,
+        type: item.type,
+        subject: item.subject,
+        issn: item.ISSN,
+        isbn: item.ISBN,
+        volume: item.volume,
+        issue: item.issue,
+        page: item.page,
+        funder: item.funder?.map((f: any) => f.name),
+        license: item.license?.map((l: any) => l.URL),
         source: 'crossref',
-        relevance_score: item['is-referenced-by-count'] || 0
+        relevance_score: (item['is-referenced-by-count'] || 0) + (item['reference-count'] || 0) * 0.1
       }));
+
+      // Try to get additional metadata for top results
+      if (apiKey && results.length > 0) {
+        await this.enrichCrossRefResults(results.slice(0, 5), headers);
+      }
+
+      return results;
 
     } catch (error: any) {
       console.error('CrossRef search error:', error.message);
+      if (error.response?.status === 429) {
+        console.error('CrossRef rate limit exceeded - consider using polite pool');
+      }
       return [];
+    }
+  }
+
+  private async enrichCrossRefResults(results: SearchResult[], headers: any): Promise<void> {
+    try {
+      // For each result, try to get more detailed information
+      const enrichPromises = results.map(async (result) => {
+        try {
+          const detailResponse = await axios.get(`https://api.crossref.org/works/${result.doi}`, {
+            headers,
+            timeout: 5000
+          });
+
+          const detail = detailResponse.data.message;
+          // Add additional metadata if available
+          if (detail.abstract) {
+            (result as any).detailed_abstract = detail.abstract;
+          }
+          if (detail.relation) {
+            (result as any).relations = detail.relation;
+          }
+          if (detail.link) {
+            (result as any).full_text_links = detail.link;
+          }
+        } catch (error) {
+          // Non-critical error, continue
+          console.error(`Failed to enrich ${result.doi}:`, error.message);
+        }
+      });
+
+      await Promise.allSettled(enrichPromises);
+    } catch (error) {
+      console.error('Failed to enrich CrossRef results:', error.message);
     }
   }
 
