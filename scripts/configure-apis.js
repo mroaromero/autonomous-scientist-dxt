@@ -39,6 +39,14 @@ class APIConfigurator {
                 free: true,
                 instructions: 'Contacte support@crossref.org para obtener acceso al polite pool'
             },
+            osf: {
+                name: 'Open Science Framework (OSF)',
+                test_endpoint: 'https://api.osf.io/v2/users/me/',
+                key_header: 'Authorization',
+                key_prefix: 'Bearer ',
+                free: true,
+                instructions: 'Genere un Personal Access Token en: https://osf.io/settings/tokens/'
+            },
         };
     }
 
@@ -88,13 +96,14 @@ class APIConfigurator {
         console.log('│ 1. Ver estado actual de APIs                  │');
         console.log('│ 2. Configurar Semantic Scholar (GRATUITO)     │');
         console.log('│ 3. Configurar CrossRef Polite Pool (GRATUITO) │');
-        console.log('│ 4. Probar todas las APIs configuradas         │');
-        console.log('│ 5. Remover API configurada                    │');
-        console.log('│ 6. Salir                                      │');
+        console.log('│ 4. Configurar OSF API (GRATUITO)              │');
+        console.log('│ 5. Probar todas las APIs configuradas         │');
+        console.log('│ 6. Remover API configurada                    │');
+        console.log('│ 7. Salir                                      │');
         console.log('│                                                │');
         console.log('└────────────────────────────────────────────────┘');
         
-        const choice = await this.prompt('\nSeleccione una opción (1-6): ');
+        const choice = await this.prompt('\nSeleccione una opción (1-7): ');
         
         switch (choice) {
             case '1':
@@ -107,12 +116,15 @@ class APIConfigurator {
                 await this.configureAPI('crossref');
                 break;
             case '4':
-                await this.testAllAPIs();
+                await this.configureAPI('osf');
                 break;
             case '5':
-                await this.removeAPI();
+                await this.testAllAPIs();
                 break;
             case '6':
+                await this.removeAPI();
+                break;
+            case '7':
                 console.log('👋 ¡Hasta luego!');
                 return;
             default:

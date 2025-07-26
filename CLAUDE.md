@@ -72,6 +72,33 @@ npm run install-cli
 npm run pack
 ```
 
+## New API Integrations (v6.0+)
+
+### OpenAlex API Tools
+- `search_openalex_works`: Search 250M+ scholarly works with advanced filtering
+- `get_openalex_work`: Get detailed work information including citations and concepts
+- `search_openalex_authors`: Search authors with metrics, affiliations, and h-index
+- `get_openalex_stats`: Database statistics and insights
+- **Authentication**: None required - completely open access
+- **Coverage**: Global scholarly literature across all disciplines
+
+### Open Science Framework (OSF) API Tools
+- `search_osf_projects`: Search public research projects and collaborations
+- `get_osf_project`: Get detailed project information with contributors and files
+- `search_osf_preprints`: Search OSF preprints across multiple providers
+- `get_osf_stats`: Platform statistics and information
+- **Authentication**: OAuth 2.0 for private content (public content accessible without auth)
+- **Coverage**: Research projects, datasets, preprints, and collaborative workflows
+
+### SciELO API Tools
+- `search_scielo_articles`: Search Latin American and Iberian scientific literature
+- `get_scielo_journals`: Get journal information by collection and subject area
+- `get_scielo_article`: Get detailed article information with multilingual abstracts
+- `get_scielo_stats`: Platform statistics and collection information
+- `shorten_scielo_url`: URL shortener service for SciELO links
+- **Authentication**: None required for basic access
+- **Coverage**: Brazil (BR), Colombia (CO), Chile (CL), Spain (ES), and more
+
 ## Key Design Patterns
 
 ### Tool Implementation Pattern
@@ -107,6 +134,9 @@ The system integrates multiple academic APIs:
 - **Semantic Scholar**: 200M+ papers, recommendations, embeddings
 - **ArXiv**: STEM preprints with full metadata
 - **CrossRef**: Publisher metadata and DOI resolution
+- **OpenAlex**: 250M+ scholarly works, authors, venues, institutions (open access)
+- **Open Science Framework (OSF)**: Research projects, collaborations, preprints, datasets
+- **SciELO**: Latin American and Iberian scientific literature (multilingual)
 
 ## Critical Dependencies
 

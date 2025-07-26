@@ -27,6 +27,12 @@ const { generateLaTeX } = require('./tools/latex-generator.js');
 const { accessSemanticScholarDatasets, downloadDatasetSample } = require('./tools/semantic-scholar-datasets.js');
 const { searchArXivAdvanced, getArXivStatistics } = require('./tools/arxiv-enhanced.js');
 const { accessCrossRefDataFile, downloadCrossRefSample, getCrossRefDataInfo } = require('./tools/crossref-labs-data.js');
+
+// New API integrations
+const { searchOpenAlexWorks, getOpenAlexWork, searchOpenAlexAuthors, getOpenAlexStats } = require('./tools/openalex-api.js');
+const { searchOSFProjects, getOSFProject, searchOSFPreprints, getOSFUserInfo, getOSFStats } = require('./tools/osf-api.js');
+const { searchSciELOArticles, getSciELOJournals, getSciELOArticle, getSciELOStats, shortenSciELOURL } = require('./tools/scielo-api.js');
+
 const { MemoryManager } = require('./utils/memory-manager.js');
 const { ErrorHandler } = require('./utils/error-handler.js');
 const { CacheManager } = require('./utils/cache-manager.js');
@@ -78,7 +84,8 @@ class AutonomousScientistServer {
       
       // API keys (handled securely by DXT)
       semantic_scholar_api_key: process.env.USER_CONFIG_SEMANTIC_SCHOLAR_API_KEY,
-      crossref_api_key: process.env.USER_CONFIG_CROSSREF_API_KEY
+      crossref_api_key: process.env.USER_CONFIG_CROSSREF_API_KEY,
+      osf_api_token: process.env.USER_CONFIG_OSF_API_TOKEN
     };
     
     // Ensure workspace directory exists
@@ -198,6 +205,40 @@ class AutonomousScientistServer {
         return await this.analyzePoliticalScience(enrichedArgs);
       case 'analyze_international_relations':
         return await this.analyzeInternationalRelations(enrichedArgs);
+      
+      // OpenAlex API Tools
+      case 'search_openalex_works':
+        return await searchOpenAlexWorks(enrichedArgs);
+      case 'get_openalex_work':
+        return await getOpenAlexWork(enrichedArgs);
+      case 'search_openalex_authors':
+        return await searchOpenAlexAuthors(enrichedArgs);
+      case 'get_openalex_stats':
+        return await getOpenAlexStats(enrichedArgs);
+      
+      // OSF API Tools
+      case 'search_osf_projects':
+        return await searchOSFProjects(enrichedArgs);
+      case 'get_osf_project':
+        return await getOSFProject(enrichedArgs);
+      case 'search_osf_preprints':
+        return await searchOSFPreprints(enrichedArgs);
+      case 'get_osf_user_info':
+        return await getOSFUserInfo(enrichedArgs);
+      case 'get_osf_stats':
+        return await getOSFStats(enrichedArgs);
+      
+      // SciELO API Tools
+      case 'search_scielo_articles':
+        return await searchSciELOArticles(enrichedArgs);
+      case 'get_scielo_journals':
+        return await getSciELOJournals(enrichedArgs);
+      case 'get_scielo_article':
+        return await getSciELOArticle(enrichedArgs);
+      case 'get_scielo_stats':
+        return await getSciELOStats(enrichedArgs);
+      case 'shorten_scielo_url':
+        return await shortenSciELOURL(enrichedArgs);
       
       default:
         throw new Error(`Unknown tool: ${name}`);
@@ -605,6 +646,193 @@ Let's start by processing the PDF. Please execute process_academic_pdf with:
         inputSchema: {
           type: 'object',
           properties: {}
+        }
+      },
+      
+      // OpenAlex API Tools (250M+ scholarly works)
+      {
+        name: 'search_openalex_works',
+        description: 'Search 250M+ scholarly works in OpenAlex with advanced filtering',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            query: { type: 'string' },
+            max_results: { type: 'number', default: 20 },
+            sort: { type: 'string', default: 'relevance_score:desc' },
+            filters: { 
+              type: 'object',
+              properties: {
+                publication_year: { type: 'string' },
+                open_access: { type: 'boolean' },
+                type: { type: 'string' }
+              }
+            },
+            fields: { type: 'array', items: { type: 'string' } }
+          },
+          required: ['query']
+        }
+      },
+      {
+        name: 'get_openalex_work',
+        description: 'Get detailed information about a specific OpenAlex work',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            work_id: { type: 'string' }
+          },
+          required: ['work_id']
+        }
+      },
+      {
+        name: 'search_openalex_authors',
+        description: 'Search OpenAlex author database with metrics and affiliations',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            query: { type: 'string' },
+            max_results: { type: 'number', default: 20 },
+            sort: { type: 'string', default: 'cited_by_count:desc' }
+          },
+          required: ['query']
+        }
+      },
+      {
+        name: 'get_openalex_stats',
+        description: 'Get OpenAlex database statistics and insights',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            entity_type: { type: 'string', enum: ['works', 'authors', 'venues', 'institutions'], default: 'works' },
+            filters: { 
+              type: 'object',
+              properties: {
+                publication_year: { type: 'string' },
+                open_access: { type: 'boolean' }
+              }
+            }
+          }
+        }
+      },
+      
+      // Open Science Framework (OSF) API Tools
+      {
+        name: 'search_osf_projects',
+        description: 'Search OSF for research projects and collaborations (public and private if authenticated)',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            query: { type: 'string' },
+            max_results: { type: 'number', default: 20 },
+            category: { type: 'string' },
+            tags: { type: 'array', items: { type: 'string' } },
+            sort: { type: 'string', default: '-date_modified' },
+            include_private: { type: 'boolean', default: false, description: 'Include private projects (requires authentication)' }
+          }
+        }
+      },
+      {
+        name: 'get_osf_project',
+        description: 'Get detailed information about a specific OSF project',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            project_id: { type: 'string' }
+          },
+          required: ['project_id']
+        }
+      },
+      {
+        name: 'search_osf_preprints',
+        description: 'Search OSF preprints database',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            query: { type: 'string' },
+            max_results: { type: 'number', default: 20 },
+            provider: { type: 'string' },
+            subject: { type: 'string' },
+            sort: { type: 'string', default: '-date_created' }
+          },
+          required: ['query']
+        }
+      },
+      {
+        name: 'get_osf_user_info',
+        description: 'Get authenticated user profile and statistics (requires OSF authentication)',
+        inputSchema: {
+          type: 'object',
+          properties: {}
+        }
+      },
+      {
+        name: 'get_osf_stats',
+        description: 'Get OSF platform statistics and information',
+        inputSchema: {
+          type: 'object',
+          properties: {}
+        }
+      },
+      
+      // SciELO API Tools (Latin American & Iberian Research)
+      {
+        name: 'search_scielo_articles',
+        description: 'Search SciELO for Latin American and Iberian scientific literature',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            query: { type: 'string' },
+            max_results: { type: 'number', default: 20 },
+            collection: { type: 'string' },
+            language: { type: 'string' },
+            subject_area: { type: 'string' },
+            publication_year: { type: 'string' },
+            sort: { type: 'string', default: 'publication_year desc' }
+          },
+          required: ['query']
+        }
+      },
+      {
+        name: 'get_scielo_journals',
+        description: 'Get SciELO journal information by collection and subject',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            query: { type: 'string' },
+            collection: { type: 'string', default: 'BR' },
+            subject_area: { type: 'string' },
+            max_results: { type: 'number', default: 20 }
+          }
+        }
+      },
+      {
+        name: 'get_scielo_article',
+        description: 'Get detailed information about a specific SciELO article',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            article_id: { type: 'string' },
+            collection: { type: 'string', default: 'BR' }
+          },
+          required: ['article_id']
+        }
+      },
+      {
+        name: 'get_scielo_stats',
+        description: 'Get SciELO platform statistics and collection information',
+        inputSchema: {
+          type: 'object',
+          properties: {}
+        }
+      },
+      {
+        name: 'shorten_scielo_url',
+        description: 'Shorten URLs using SciELO URL shortener service',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            url: { type: 'string' }
+          },
+          required: ['url']
         }
       },
       

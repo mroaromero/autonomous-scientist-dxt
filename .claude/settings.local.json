@@ -35,7 +35,13 @@
       "Bash(unzip:*)",
       "Bash(npm run bundle:*)",
       "Bash(npm run pack:*)",
-      "Bash(npm run diagnose:*)"
+      "Bash(npm run diagnose:*)",
+      "WebFetch(domain:pypi.org)",
+      "WebFetch(domain:developer.osf.io)",
+      "WebFetch(domain:scielo.readthedocs.io)",
+      "WebFetch(domain:docs.openalex.org)",
+      "Bash(npm run configure-apis:*)",
+      "Bash(npm test)"
     ],
     "deny": []
   }

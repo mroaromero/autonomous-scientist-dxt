@@ -1,10 +1,10 @@
 {
   "dxt_version": "0.1",
   "name": "autonomous-scientist",
-  "version": "6.0.0",
+  "version": "6.1.0",
   "display_name": "Autonomous Scientist",
   "description": "Comprehensive research automation system for social sciences and humanities",
-  "long_description": "The Autonomous Scientist is an advanced research assistant that combines multi-language OCR processing, discipline-specific analysis for 8 academic fields, LaTeX document generation, and comprehensive literature search. Optimized for Intel i3-12100F + 16GB DDR4 systems.",
+  "long_description": "The Autonomous Scientist is an advanced research assistant with access to 400M+ academic papers through 6 integrated APIs (OpenAlex, OSF, SciELO, Semantic Scholar, ArXiv, CrossRef). Features multi-language OCR processing, discipline-specific analysis for 8 academic fields, LaTeX document generation, and comprehensive literature search. Optimized for Intel i3-12100F + 16GB DDR4 systems.",
   "author": {
     "name": "Manuel Roa",
     "email": "manuel.roa@researcher.com"
@@ -55,6 +55,13 @@
       "type": "string", 
       "title": "CrossRef Polite Pool Token",
       "description": "Optional token for CrossRef polite pool access",
+      "sensitive": true,
+      "required": false
+    },
+    "osf_api_token": {
+      "type": "string",
+      "title": "OSF Personal Access Token",
+      "description": "Optional token for accessing private OSF projects and enhanced features",
       "sensitive": true,
       "required": false
     },
@@ -148,6 +155,62 @@
     {
       "name": "compile_to_pdf",
       "description": "Compile LaTeX documents to PDF with error handling"
+    },
+    {
+      "name": "search_openalex_works",
+      "description": "Search 250M+ scholarly works in OpenAlex with advanced filtering"
+    },
+    {
+      "name": "get_openalex_work", 
+      "description": "Get detailed information about a specific OpenAlex work"
+    },
+    {
+      "name": "search_openalex_authors",
+      "description": "Search OpenAlex author database with metrics and affiliations"
+    },
+    {
+      "name": "get_openalex_stats",
+      "description": "Get OpenAlex database statistics and insights"
+    },
+    {
+      "name": "search_osf_projects",
+      "description": "Search OSF for public research projects and collaborations"  
+    },
+    {
+      "name": "get_osf_project",
+      "description": "Get detailed information about a specific OSF project"
+    },
+    {
+      "name": "search_osf_preprints", 
+      "description": "Search OSF preprints database"
+    },
+    {
+      "name": "get_osf_user_info",
+      "description": "Get authenticated user profile and statistics from OSF"
+    },
+    {
+      "name": "get_osf_stats", 
+      "description": "Get OSF platform statistics and information"
+    },
+    {
+      "name": "search_scielo_articles",
+      "description": "Search SciELO for Latin American and Iberian scientific literature"
+    },
+    {
+      "name": "get_scielo_journals",
+      "description": "Get SciELO journal information by collection and subject"
+    },
+    {
+      "name": "get_scielo_article",
+      "description": "Get detailed information about a specific SciELO article"
+    },
+    {
+      "name": "get_scielo_stats",
+      "description": "Get SciELO platform statistics and collection information"
+    },
+    {
+      "name": "shorten_scielo_url",
+      "description": "Shorten URLs using SciELO URL shortener service"
     }
   ],
   "prompts": [

@@ -2,6 +2,50 @@
 
 All notable changes to the Autonomous Scientist Desktop Extension will be documented in this file.
 
+## [6.1.0] - 2025-07-26
+
+### 🚀 Major API Expansion
+- **NEW: OpenAlex API Integration** - 250M+ scholarly works, completely open access
+  - `search_openalex_works` - Advanced filtering and search capabilities
+  - `get_openalex_work` - Detailed work information with citations and concepts  
+  - `search_openalex_authors` - Author search with metrics, affiliations, h-index
+  - `get_openalex_stats` - Database statistics and insights
+  - No authentication required - fully open access
+
+- **NEW: Open Science Framework (OSF) API** - Research collaboration platform
+  - `search_osf_projects` - Public and private project search with authentication
+  - `get_osf_project` - Detailed project information with contributors and files
+  - `search_osf_preprints` - OSF preprints across multiple providers
+  - `get_osf_user_info` - Authenticated user profile and statistics
+  - `get_osf_stats` - Platform statistics and information
+  - Full OAuth 2.0 authentication support for private content access
+
+- **NEW: SciELO API Integration** - Latin American and Iberian scientific literature
+  - `search_scielo_articles` - Regional literature search with multilingual support
+  - `get_scielo_journals` - Journal information by collection and subject area
+  - `get_scielo_article` - Detailed article information with multilingual abstracts
+  - `get_scielo_stats` - Platform statistics and collection information
+  - `shorten_scielo_url` - URL shortener service for SciELO links
+  - Coverage: Brazil (BR), Colombia (CO), Chile (CL), Spain (ES), and more
+
+### 🔧 Enhanced Configuration System
+- **API Configuration Wizard** - Interactive setup for all research APIs
+- **Encrypted Token Storage** - Secure storage of API credentials with AES encryption
+- **Real-time API Validation** - Live testing of API keys and tokens during setup
+- **OSF Authentication** - Personal Access Token integration with user validation
+
+### 📊 Comprehensive API Coverage
+- **400M+ Research Papers** - Combined access across all integrated APIs
+- **Global + Regional Coverage** - From OpenAlex's worldwide database to SciELO's regional focus  
+- **Multi-language Support** - Spanish, Portuguese, English, and other academic languages
+- **No Authentication Barriers** - Most APIs work without keys for basic access
+
+### 🛠️ Technical Improvements
+- Enhanced error handling across all API integrations
+- Improved TypeScript and JavaScript dual implementation
+- Better memory management for large API responses
+- Comprehensive testing suite for all new APIs
+
 ## [6.0.0] - 2025-01-25
 
 ### 🎉 Major Release
