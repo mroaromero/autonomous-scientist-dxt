@@ -1,0 +1,255 @@
+{
+  "dxt_version": "0.1",
+  "name": "autonomous-scientist",
+  "version": "6.0.0",
+  "display_name": "Autonomous Scientist",
+  "description": "Comprehensive research automation system for social sciences and humanities",
+  "long_description": "The Autonomous Scientist is an advanced research assistant that combines multi-language OCR processing, discipline-specific analysis for 8 academic fields, LaTeX document generation, and comprehensive literature search. Optimized for Intel i3-12100F + 16GB DDR4 systems.",
+  "author": {
+    "name": "Manuel Roa",
+    "email": "manuel.roa@researcher.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "research",
+    "academic",
+    "social-sciences", 
+    "humanities",
+    "ocr",
+    "latex",
+    "literature-search",
+    "pdf-processing",
+    "psychology",
+    "neuroscience",
+    "education",
+    "sociology",
+    "anthropology",
+    "philosophy",
+    "political-science",
+    "international-relations"
+  ],
+  "icon": "assets/icon.svg",
+  "server": {
+    "type": "node",
+    "entry_point": "server/index-simple.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/server/index-simple.js"],
+      "env": {
+        "NODE_ENV": "production",
+        "EXTENSION_PATH": "${__dirname}",
+        "CACHE_DIR": "${HOME}/.autonomous-scientist/cache",
+        "CONFIG_DIR": "${HOME}/.autonomous-scientist"
+      }
+    }
+  },
+  "user_config": {
+    "semantic_scholar_api_key": {
+      "type": "string",
+      "title": "Semantic Scholar API Key",
+      "description": "Optional API key for enhanced Semantic Scholar access",
+      "sensitive": true,
+      "required": false
+    },
+    "crossref_api_key": {
+      "type": "string", 
+      "title": "CrossRef Polite Pool Token",
+      "description": "Optional token for CrossRef polite pool access",
+      "sensitive": true,
+      "required": false
+    },
+    "primary_discipline": {
+      "type": "string",
+      "title": "Primary Research Discipline",
+      "description": "Your main area of research for optimized analysis",
+      "default": "psychology",
+      "required": true
+    },
+    "default_citation_style": {
+      "type": "string",
+      "title": "Default Citation Style",
+      "description": "Preferred citation format for generated documents",
+      "default": "apa",
+      "required": true
+    },
+    "cache_size_gb": {
+      "type": "number",
+      "title": "Cache Size (GB)",
+      "description": "Maximum disk cache size for processed documents",
+      "default": 5,
+      "required": true
+    },
+    "max_concurrent_pdfs": {
+      "type": "number",
+      "title": "Max Concurrent PDF Processing",
+      "description": "Maximum number of PDFs to process simultaneously",
+      "default": 2,
+      "required": true
+    },
+    "ocr_languages": {
+      "type": "string",
+      "title": "OCR Languages",
+      "description": "Comma-separated list of languages for OCR processing",
+      "default": "en,es,de,fr,it,pt,la",
+      "required": true
+    },
+    "workspace_directory": {
+      "type": "directory",
+      "title": "Research Workspace Directory",
+      "description": "Directory for storing research projects and generated documents",
+      "default": "${HOME}/Documents/Research",
+      "required": true
+    },
+    "enable_advanced_features": {
+      "type": "boolean",
+      "title": "Enable Advanced Features",
+      "description": "Enable experimental features like multilingual analysis and advanced OCR",
+      "default": true,
+      "required": false
+    }
+  },
+  "tools": [
+    {
+      "name": "setup_research_apis",
+      "description": "Interactive setup wizard for research APIs (Semantic Scholar, ArXiv, CrossRef)"
+    },
+    {
+      "name": "process_academic_pdf", 
+      "description": "Complete PDF processing with OCR, metadata extraction, and content analysis"
+    },
+    {
+      "name": "comprehensive_literature_search",
+      "description": "Multi-source academic search across Semantic Scholar, ArXiv, and CrossRef"
+    },
+    {
+      "name": "analyze_by_discipline",
+      "description": "Discipline-specific analysis of academic content for 8 specialized fields"
+    },
+    {
+      "name": "generate_latex_paper",
+      "description": "Generate complete LaTeX documents with discipline-specific formatting"
+    },
+    {
+      "name": "batch_process_pdfs",
+      "description": "Process multiple PDFs efficiently with memory optimization"
+    },
+    {
+      "name": "ocr_multilingual",
+      "description": "Advanced multi-language OCR with academic terminology enhancement"
+    },
+    {
+      "name": "identify_research_gaps",
+      "description": "Automatic identification of research gaps from literature analysis"
+    },
+    {
+      "name": "format_citations",
+      "description": "Automatic citation formatting for multiple academic styles"
+    },
+    {
+      "name": "compile_to_pdf",
+      "description": "Compile LaTeX documents to PDF with error handling"
+    }
+  ],
+  "prompts": [
+    {
+      "name": "literature_review_workflow",
+      "description": "Complete workflow for conducting a literature review",
+      "arguments": ["topic", "discipline"],
+      "text": "I'll help you conduct a comprehensive literature review on {{topic}} in the field of {{discipline}}. Let me start by searching multiple academic databases and analyzing the current state of research."
+    },
+    {
+      "name": "document_analysis_workflow",
+      "description": "Comprehensive analysis of academic documents",
+      "arguments": ["file_path"],
+      "text": "I'll analyze the PDF document at {{file_path}} using OCR processing, discipline-specific analysis, and content extraction to provide you with a comprehensive academic summary."
+    }
+  ],
+  "compatibility": {
+    "claude_desktop": ">=0.8.0",
+    "platforms": ["win32", "darwin", "linux"]
+  },
+  "hardware_requirements": {
+    "minimum": {
+      "cpu": "Intel i3-12100F or AMD Ryzen 5 3600 equivalent",
+      "memory_gb": 16,
+      "storage_gb": 10,
+      "gpu": "Not required (CPU-based OCR and processing)"
+    },
+    "recommended": {
+      "cpu": "Intel i5-12400F or AMD Ryzen 7 5700X",
+      "memory_gb": 32,
+      "storage_gb": 50,
+      "gpu": "Any modern GPU for potential future ML features"
+    },
+    "notes": [
+      "Optimized for Intel i3-12100F + 16GB DDR4 systems",
+      "OCR processing is CPU-intensive, more cores improve performance",
+      "Large cache recommended for frequent PDF processing",
+      "Network connection required for API access"
+    ]
+  },
+  "update_url": "https://github.com/manuel-roa/autonomous-scientist-dxt/releases/latest/download/manifest.json",
+  "screenshots": [
+    "assets/screenshots/main-interface.png",
+    "assets/screenshots/literature-search.png",
+    "assets/screenshots/pdf-processing.png",
+    "assets/screenshots/latex-generation.png"
+  ],
+  "installation_wizard": {
+    "enabled": true,
+    "script": "scripts/setup-wizard.js",
+    "steps": [
+      {
+        "id": "welcome",
+        "title": "Welcome to Autonomous Scientist",
+        "description": "This wizard will guide you through the initial setup",
+        "type": "info"
+      },
+      {
+        "id": "system_check",
+        "title": "System Requirements Check",
+        "description": "Validating your system meets minimum requirements",
+        "type": "validation",
+        "script": "scripts/system-validator.js"
+      },
+      {
+        "id": "api_setup",
+        "title": "Research API Configuration",
+        "description": "Configure access to academic databases",
+        "type": "configuration",
+        "script": "scripts/configure-apis.js"
+      },
+      {
+        "id": "workspace",
+        "title": "Research Workspace Setup",
+        "description": "Choose your research workspace directory",
+        "type": "directory_selection",
+        "default": "${HOME}/Documents/Research"
+      },
+      {
+        "id": "discipline",
+        "title": "Primary Research Discipline",
+        "description": "Select your main research area for optimized analysis",
+        "type": "selection",
+        "options": ["psychology", "neuroscience", "education", "sociology", "anthropology", "philosophy", "political-science", "international-relations"]
+      },
+      {
+        "id": "completion",
+        "title": "Setup Complete",
+        "description": "Your Autonomous Scientist is ready to use!",
+        "type": "completion"
+      }
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/manuel-roa/autonomous-scientist-dxt"
+  },
+  "homepage": "https://github.com/manuel-roa/autonomous-scientist-dxt#readme",
+  "support": {
+    "documentation": "https://github.com/manuel-roa/autonomous-scientist-dxt/wiki",
+    "issues": "https://github.com/manuel-roa/autonomous-scientist-dxt/issues",
+    "email": "manuel.roa@researcher.com"
+  },
+  "changelog_url": "https://github.com/manuel-roa/autonomous-scientist-dxt/blob/main/CHANGELOG.md"
+}

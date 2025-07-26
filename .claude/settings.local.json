@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "Bash(npm install:*)",
+      "Bash(dxt pack:*)",
+      "Bash(dxt validate:*)",
+      "Bash(git add:*)",
+      "Bash(git push:*)",
+      "WebFetch(domain:api.crossref.org)",
+      "WebFetch(domain:api.semanticscholar.org)",
+      "WebFetch(domain:info.arxiv.org)",
+      "WebFetch(domain:gitlab.com)",
+      "Bash(git commit:*)",
+      "Bash(node:*)",
+      "Bash(npm audit:*)",
+      "Bash(npm outdated)",
+      "Bash(npx tsc:*)",
+      "Bash(ls:*)",
+      "Bash(timeout:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(rm:*)",
+      "Bash(npm outdated:*)",
+      "Bash(find:*)",
+      "Bash(git init:*)"
+    ],
+    "deny": []
+  }
+}

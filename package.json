@@ -1,0 +1,69 @@
+{
+  "name": "autonomous-scientist-extension",
+  "version": "6.0.0",
+  "description": "Autonomous Research System for Social Sciences and Humanities - Claude Desktop Extension",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "echo 'Using JavaScript files directly'",
+    "bundle": "if not exist dist mkdir dist && copy server\\index.js dist\\bundle.js",
+    "dev": "node server/index.js",
+    "start": "node server/index.js",
+    "test": "node tests/unit/server.test.js && node tests/integration/tools.test.js",
+    "test:unit": "node tests/unit/server.test.js",
+    "test:integration": "node tests/integration/tools.test.js",
+    "test:watch": "echo 'Test watch mode not implemented yet'",
+    "lint": "echo 'Linting disabled for now'",
+    "pack": "echo 'Packing extension...' && echo 'Note: Install @anthropic-ai/dxt globally first: npm install -g @anthropic-ai/dxt'",
+    "install-cli": "npm install -g @anthropic-ai/dxt",
+    "prepare-dxt": "npm run build && npm run pack",
+    "setup": "node scripts/auto-install.js",
+    "configure-apis": "node scripts/configure-apis.js",
+    "install-mcps": "node scripts/mcp-installer.js",
+    "validate": "node scripts/system-validator.js",
+    "validate:quick": "node scripts/system-validator.js --quick",
+    "diagnose": "node scripts/mcp-installer.js --diagnose",
+    "install:complete": "npm install && npm run setup && npm run install-mcps && npm run validate",
+    "postinstall": "node -e \"console.log('\\n🚀 Para completar la instalación, ejecute: npm run setup\\n')\""
+  },
+  "keywords": [
+    "research",
+    "academic",
+    "social-sciences",
+    "humanities",
+    "mcp",
+    "claude",
+    "ocr",
+    "latex",
+    "desktop-extension"
+  ],
+  "author": "Manuel Roa",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.0",
+    "axios": "^1.7.0",
+    "crypto-js": "^4.2.0",
+    "jimp": "^1.6.0",
+    "node-cache": "^5.1.2",
+    "pdf-parse": "^1.1.1",
+    "sharp": "^0.34.0",
+    "tesseract.js": "^6.0.0",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.0",
+    "@types/node": "^20.19.0",
+    "@types/pdf-parse": "^1.1.5",
+    "@types/xml2js": "^0.4.14",
+    "archiver": "^7.0.1",
+    "fs-extra": "^11.3.0",
+    "mocha": "^10.2.0",
+    "chai": "^4.3.0",
+    "sinon": "^17.0.0",
+    "nyc": "^15.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
