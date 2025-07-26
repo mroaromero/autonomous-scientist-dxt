@@ -41,7 +41,20 @@
       "WebFetch(domain:scielo.readthedocs.io)",
       "WebFetch(domain:docs.openalex.org)",
       "Bash(npm run configure-apis:*)",
-      "Bash(npm test)"
+      "Bash(npm test)",
+      "Bash(uv:*)",
+      "Bash(git clone:*)",
+      "Bash(echo:*)",
+      "Bash(claude config get)",
+      "Bash(claude mcp:*)",
+      "Bash(npx @upstash/context7-mcp:*)",
+      "Bash(npx @modelcontextprotocol/server-sequential-thinking:*)",
+      "Bash(claude doctor)",
+      "Bash(claude --debug)",
+      "Bash(cat:*)",
+      "Bash(npm run validate:*)",
+      "Bash(touch:*)",
+      "Bash(git rm:*)"
     ],
     "deny": []
   }

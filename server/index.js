@@ -33,16 +33,27 @@ const { searchOpenAlexWorks, getOpenAlexWork, searchOpenAlexAuthors, getOpenAlex
 const { searchOSFProjects, getOSFProject, searchOSFPreprints, getOSFUserInfo, getOSFStats } = require('./tools/osf-api.js');
 const { searchSciELOArticles, getSciELOJournals, getSciELOArticle, getSciELOStats, shortenSciELOURL } = require('./tools/scielo-api.js');
 
+// News and Evidence APIs
+const { NewsAPIResearchEngine } = require('./data-sources/newsapi-research.js');
+const { ConsensusAPIEngine } = require('./data-sources/consensus-api.js');
+
 const { MemoryManager } = require('./utils/memory-manager.js');
 const { ErrorHandler } = require('./utils/error-handler.js');
 const { CacheManager } = require('./utils/cache-manager.js');
+
+// Import Cognitive Architecture Components
+const { AutonomousScientistCognitiveCore } = require('./cognitive-core/operational-flow.js');
+const { CognitiveSkillsEngine } = require('./cognitive-abilities/cognitive-skills-engine.js');
+const { AcademicDocumentStructure } = require('./document-structure/academic-structure.js');
+const { IntegratedCitationSystem } = require('./citation-engine/integrated-citation-system.js');
+const { AcademicIntegrityValidator } = require('./integrity-engine/academic-integrity-validator.js');
 
 class AutonomousScientistServer {
   constructor() {
     this.server = new Server(
       {
         name: 'autonomous-scientist',
-        version: '6.0.0'
+        version: '6.2.0'
       },
       {
         capabilities: {
@@ -64,11 +75,25 @@ class AutonomousScientistServer {
     this.errorHandler = new ErrorHandler();
     this.cacheManager = new CacheManager();
     
+    // Initialize Cognitive Architecture
+    this.cognitiveCore = new AutonomousScientistCognitiveCore(this.config, this.cacheManager);
+    this.cognitiveEngine = new CognitiveSkillsEngine(this.config, this.cacheManager);
+    this.documentStructure = new AcademicDocumentStructure(this.config, this.cacheManager);
+    this.citationSystem = new IntegratedCitationSystem(this.config, this.cacheManager);
+    this.integrityValidator = new AcademicIntegrityValidator(this.config, this.cacheManager);
+    
+    // Initialize New API Engines
+    this.newsAPI = new NewsAPIResearchEngine(this.config.newsapi_key);
+    this.consensusAPI = new ConsensusAPIEngine();
+    
     this.setupToolHandlers();
     this.setupPromptHandlers();
     
-    console.error('🔬 Autonomous Scientist v6.0 initialized');
+    console.error('🔬 Autonomous Scientist v6.2 initialized with Cognitive Architecture');
+    console.error(`🧠 Cognitive Core: 5-step flow, 12 abilities, 9 sections, 28 subsections`);
     console.error(`📊 Configuration: ${this.config.primary_discipline}, ${this.config.default_citation_style} citations`);
+    console.error(`🔗 New APIs: NewsAPI (academic news), Consensus (evidence-based research)`);
+    console.error(`🛠️  Total Tools: 65+ MCP tools organized in 5 modules`);
   }
 
   loadUserConfiguration() {
@@ -85,7 +110,8 @@ class AutonomousScientistServer {
       // API keys (handled securely by DXT)
       semantic_scholar_api_key: process.env.USER_CONFIG_SEMANTIC_SCHOLAR_API_KEY,
       crossref_api_key: process.env.USER_CONFIG_CROSSREF_API_KEY,
-      osf_api_token: process.env.USER_CONFIG_OSF_API_TOKEN
+      osf_api_token: process.env.USER_CONFIG_OSF_API_TOKEN,
+      newsapi_key: process.env.USER_CONFIG_NEWSAPI_KEY || 'efeb07d71d924059983a02797a18a62e'
     };
     
     // Ensure workspace directory exists
@@ -239,6 +265,77 @@ class AutonomousScientistServer {
         return await getSciELOStats(enrichedArgs);
       case 'shorten_scielo_url':
         return await shortenSciELOURL(enrichedArgs);
+      
+      // NewsAPI Research Tools
+      case 'search_academic_news':
+        return await this.newsAPI.searchAcademicNews(enrichedArgs);
+      case 'get_academic_headlines':
+        return await this.newsAPI.getAcademicHeadlines(enrichedArgs);
+      case 'search_news_by_paradigm':
+        return await this.newsAPI.searchByResearchParadigm(enrichedArgs);
+      case 'get_trending_academic_topics':
+        return await this.newsAPI.getTrendingAcademicTopics(enrichedArgs);
+      case 'validate_newsapi_connection':
+        return await this.newsAPI.validateConnection();
+      
+      // Consensus API Evidence Tools
+      case 'search_scientific_consensus':
+        return await this.consensusAPI.searchScientificConsensus(enrichedArgs);
+      case 'analyze_research_consensus':
+        return await this.consensusAPI.analyzeResearchConsensus(enrichedArgs);
+      case 'identify_research_gaps_consensus':
+        return await this.consensusAPI.identifyResearchGaps(enrichedArgs);
+      case 'get_methodology_recommendations':
+        return await this.consensusAPI.getMethodologyRecommendations(enrichedArgs);
+      case 'validate_consensus_connection':
+        return await this.consensusAPI.validateConnection();
+      
+      // ===== COGNITIVE ARCHITECTURE TOOLS =====
+      // Operational Flow Tools
+      case 'initial_project_assessment':
+        return await this.cognitiveCore.initialAssessment(enrichedArgs);
+      case 'epistemological_inquiry':
+        return await this.cognitiveCore.epistemologicalInquiry.execute(enrichedArgs);
+      case 'problem_formulation_engine':
+        return await this.cognitiveCore.problemFormulation(enrichedArgs);
+      case 'methodological_evaluator':
+        return await this.cognitiveCore.methodologicalEvaluation(enrichedArgs);
+      case 'action_plan_generator':
+        return await this.cognitiveCore.actionPlanPresentation(enrichedArgs);
+      
+      // Cognitive Skills Tools
+      case 'cognitive_synthesizer':
+        return await this.cognitiveEngine.executeSkill('Sintetizar', enrichedArgs.content, enrichedArgs.context);
+      case 'cognitive_argumentator':
+        return await this.cognitiveEngine.executeSkill('Argumentar', enrichedArgs.content, enrichedArgs.context);
+      case 'cognitive_analyzer':
+        return await this.cognitiveEngine.executeSkill('Analizar', enrichedArgs.content, enrichedArgs.context);
+      case 'cognitive_informer':
+        return await this.cognitiveEngine.executeSkill('Informar', enrichedArgs.content, enrichedArgs.context);
+      case 'cognitive_organizer':
+        return await this.cognitiveEngine.executeSkill('Ordenar', enrichedArgs.content, enrichedArgs.context);
+      
+      // Document Structure Tools
+      case 'generate_document_section':
+        return await this.documentStructure.generateSection(enrichedArgs.sectionNumber, enrichedArgs.content, enrichedArgs.context);
+      case 'generate_complete_academic_document':
+        return await this.documentStructure.generateCompleteDocument(enrichedArgs.content, enrichedArgs.context);
+      case 'validate_document_structure':
+        return await this.documentStructure.validateCompleteDocument(enrichedArgs.document);
+      
+      // Citation and Integrity Tools
+      case 'intelligent_citation_processor':
+        return await this.citationSystem.processDocumentSection(enrichedArgs.section, enrichedArgs.cognitiveSkills, enrichedArgs.requirements, enrichedArgs.sources);
+      case 'validate_academic_integrity':
+        return await this.integrityValidator.validateSection(enrichedArgs.section, enrichedArgs.content, enrichedArgs.citations, enrichedArgs.cognitiveSkills, enrichedArgs.requirements);
+      case 'detect_citation_fabrication':
+        return await this.integrityValidator.detectFabrication(enrichedArgs.citations, enrichedArgs.content);
+      
+      // Cognitive Assessment Tools
+      case 'assess_cognitive_alignment':
+        return await this.cognitiveEngine.validateCognitiveAlignment(enrichedArgs.section, enrichedArgs.content, enrichedArgs.requiredSkills);
+      case 'generate_cognitive_report':
+        return await this.cognitiveEngine.generateSkillsReport(enrichedArgs.executionResults);
       
       default:
         throw new Error(`Unknown tool: ${name}`);
@@ -838,6 +935,387 @@ Let's start by processing the PDF. Please execute process_academic_pdf with:
       
       // Additional discipline-specific tools would be defined here...
       // (For brevity, showing just 2 of the 8 disciplines)
+      
+      // ===== COGNITIVE ARCHITECTURE TOOLS =====
+      // Operational Flow Tools (5-step process)
+      {
+        name: 'initial_project_assessment',
+        description: 'Step 1: Initial assessment of project materials and stage',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            topic: { type: 'string' },
+            description: { type: 'string' },
+            documents: { type: 'array', items: { type: 'string' } },
+            objectives: { type: 'array', items: { type: 'string' } },
+            methodology: { type: 'string' }
+          }
+        }
+      },
+      {
+        name: 'epistemological_inquiry',
+        description: 'Step 2: Epistemological inquiry - "¿Por qué crees lo que crees?"',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            topic: { type: 'string' },
+            worldview: { type: 'string' },
+            interests: { type: 'string' },
+            assumptions: { type: 'string' }
+          }
+        }
+      },
+      {
+        name: 'problem_formulation_engine',
+        description: 'Step 3: Comprehensive problem formulation based on paradigm',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            topic: { type: 'string' },
+            paradigm: { type: 'object' },
+            context: { type: 'string' },
+            objectives: { type: 'array', items: { type: 'string' } }
+          }
+        }
+      },
+      {
+        name: 'methodological_evaluator',
+        description: 'Step 4: Methodological evaluation and selection',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            formulation: { type: 'object' },
+            resources: { type: 'object' },
+            constraints: { type: 'object' }
+          }
+        }
+      },
+      {
+        name: 'action_plan_generator',
+        description: 'Step 5: Action plan generation and user approval',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            completedAnalysis: { type: 'object' },
+            wordCount: { type: 'number' },
+            timeline: { type: 'string' }
+          }
+        }
+      },
+      
+      // Cognitive Skills Tools (12 abilities)
+      {
+        name: 'cognitive_synthesizer',
+        description: 'Synthesize complex information (for Resumen, Keywords, Theoretical Framework, Conclusions)',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            content: { type: 'string' },
+            context: { type: 'object' },
+            synthesisType: { type: 'string', enum: ['resumen', 'palabrasClave', 'marcoTeorico', 'conclusiones'] }
+          },
+          required: ['content', 'context']
+        }
+      },
+      {
+        name: 'cognitive_argumentator',
+        description: 'Construct logical arguments (for Problematization, Methodological Framework)',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            content: { type: 'string' },
+            context: { type: 'object' },
+            argumentType: { type: 'string', enum: ['problematizacion', 'marcoMetodologico', 'justificacion'] }
+          },
+          required: ['content', 'context']
+        }
+      },
+      {
+        name: 'cognitive_analyzer',
+        description: 'Systematic analysis (for Results Analysis, Comparative Analysis)',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            content: { type: 'string' },
+            context: { type: 'object' },
+            analysisType: { type: 'string', enum: ['analisisResultados', 'comparative', 'data'] }
+          },
+          required: ['content', 'context']
+        }
+      },
+      {
+        name: 'cognitive_informer',
+        description: 'Provide clear information (for Introduction, Research Questions, Definitions)',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            content: { type: 'string' },
+            context: { type: 'object' },
+            informationType: { type: 'string', enum: ['introduccion', 'preguntasInvestigacion', 'marcoMetodologico'] }
+          },
+          required: ['content', 'context']
+        }
+      },
+      {
+        name: 'cognitive_organizer',
+        description: 'Structure information logically (for Introduction structure, Theoretical order, Conclusions clarity)',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            content: { type: 'string' },
+            context: { type: 'object' },
+            organizationType: { type: 'string', enum: ['introduccion', 'marcoTeorico', 'conclusiones'] }
+          },
+          required: ['content', 'context']
+        }
+      },
+      
+      // Academic Document Structure Tools
+      {
+        name: 'generate_document_section',
+        description: 'Generate complete academic document section with cognitive skills',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            sectionNumber: { type: 'number', minimum: 1, maximum: 9 },
+            content: { type: 'string' },
+            context: { type: 'object' },
+            sources: { type: 'array', items: { type: 'object' } }
+          },
+          required: ['sectionNumber', 'content', 'context']
+        }
+      },
+      {
+        name: 'generate_complete_academic_document',
+        description: 'Generate complete 9-section academic document with full cognitive architecture',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            title: { type: 'string' },
+            content: { type: 'object' },
+            context: { type: 'object' },
+            wordCount: { type: 'number' }
+          },
+          required: ['title', 'content', 'context']
+        }
+      },
+      {
+        name: 'validate_document_structure',
+        description: 'Validate academic document structure and requirements compliance',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            document: { type: 'object' },
+            requirements: { type: 'object' }
+          },
+          required: ['document']
+        }
+      },
+      
+      // Citation and Integrity Tools
+      {
+        name: 'intelligent_citation_processor',
+        description: 'Process citations with cognitive-driven strategy selection',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            section: { type: 'string' },
+            cognitiveSkills: { type: 'array', items: { type: 'string' } },
+            sources: { type: 'array', items: { type: 'object' } },
+            requirements: { type: 'object' }
+          },
+          required: ['section', 'cognitiveSkills', 'sources']
+        }
+      },
+      {
+        name: 'validate_academic_integrity',
+        description: 'Comprehensive academic integrity validation',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            section: { type: 'string' },
+            content: { type: 'string' },
+            citations: { type: 'array', items: { type: 'object' } },
+            cognitiveSkills: { type: 'array', items: { type: 'string' } },
+            requirements: { type: 'object' }
+          },
+          required: ['section', 'content', 'citations']
+        }
+      },
+      {
+        name: 'detect_citation_fabrication',
+        description: 'Detect potentially fabricated citations and sources',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            citations: { type: 'array', items: { type: 'object' } },
+            content: { type: 'string' }
+          },
+          required: ['citations', 'content']
+        }
+      },
+      
+      // Cognitive Assessment Tools
+      {
+        name: 'assess_cognitive_alignment',
+        description: 'Assess alignment between content and required cognitive skills',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            section: { type: 'string' },
+            content: { type: 'string' },
+            requiredSkills: { type: 'array', items: { type: 'string' } }
+          },
+          required: ['section', 'content', 'requiredSkills']
+        }
+      },
+      {
+        name: 'generate_cognitive_report',
+        description: 'Generate comprehensive cognitive skills execution report',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            executionResults: { type: 'object' },
+            document: { type: 'object' }
+          },
+          required: ['executionResults']
+        }
+      },
+      
+      // ===== NEWS API RESEARCH TOOLS =====
+      {
+        name: 'search_academic_news',
+        description: 'Search news articles with academic filtering and relevance scoring',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            query: { type: 'string', description: 'Search query for news articles' },
+            domains: { type: 'array', items: { type: 'string' }, description: 'Specific domains to search' },
+            language: { type: 'string', default: 'en', description: 'Language filter' },
+            sortBy: { type: 'string', enum: ['relevancy', 'popularity', 'publishedAt'], default: 'relevancy' },
+            pageSize: { type: 'number', default: 20, maximum: 100, description: 'Number of results' },
+            from: { type: 'string', description: 'From date (YYYY-MM-DD)' },
+            to: { type: 'string', description: 'To date (YYYY-MM-DD)' },
+            academicOnly: { type: 'boolean', default: false, description: 'Filter for academic content only' }
+          },
+          required: ['query']
+        }
+      },
+      {
+        name: 'get_academic_headlines',
+        description: 'Get top headlines from academic and scientific sources',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            category: { type: 'string', default: 'science', description: 'Category filter' },
+            sources: { type: 'array', items: { type: 'string' }, description: 'Specific sources' },
+            country: { type: 'string', default: 'us', description: 'Country code' },
+            pageSize: { type: 'number', default: 20, maximum: 100, description: 'Number of results' }
+          }
+        }
+      },
+      {
+        name: 'search_news_by_paradigm',
+        description: 'Search research news filtered by academic paradigm and discipline',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            topic: { type: 'string', description: 'Research topic' },
+            paradigm: { type: 'string', enum: ['marxism', 'liberalism', 'humanism', 'positivism', 'critical-theory', 'structuralism', 'post-structuralism'], description: 'Research paradigm' },
+            discipline: { type: 'string', description: 'Academic discipline' },
+            daysBack: { type: 'number', default: 30, description: 'Number of days to search back' }
+          },
+          required: ['topic']
+        }
+      },
+      {
+        name: 'get_trending_academic_topics',
+        description: 'Analyze trending academic topics and research areas',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            disciplines: { type: 'array', items: { type: 'string' }, default: ['psychology', 'neuroscience', 'education', 'sociology'], description: 'Academic disciplines to analyze' },
+            daysBack: { type: 'number', default: 7, description: 'Analysis period in days' }
+          }
+        }
+      },
+      {
+        name: 'validate_newsapi_connection',
+        description: 'Validate NewsAPI connection and configuration',
+        inputSchema: {
+          type: 'object',
+          properties: {}
+        }
+      },
+      
+      // ===== CONSENSUS API EVIDENCE TOOLS =====
+      {
+        name: 'search_scientific_consensus',
+        description: 'Search for scientific evidence and consensus on research topics',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            query: { type: 'string', description: 'Research question or topic' },
+            limit: { type: 'number', default: 20, maximum: 100, description: 'Number of results' },
+            domain: { type: 'string', description: 'Research domain filter' },
+            evidenceLevel: { type: 'string', enum: ['high', 'medium', 'low', 'all'], default: 'all', description: 'Evidence quality filter' },
+            metaAnalysisOnly: { type: 'boolean', default: false, description: 'Only return meta-analyses and systematic reviews' },
+            journals: { type: 'array', items: { type: 'string' }, description: 'Specific journals to search' },
+            yearFrom: { type: 'number', description: 'Start year for publication date filter' },
+            yearTo: { type: 'number', description: 'End year for publication date filter' }
+          },
+          required: ['query']
+        }
+      },
+      {
+        name: 'analyze_research_consensus',
+        description: 'Analyze consensus patterns and evidence strength on research questions',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            question: { type: 'string', description: 'Specific research question' },
+            keywords: { type: 'array', items: { type: 'string' }, description: 'Key terms to analyze' },
+            paradigm: { type: 'string', description: 'Research paradigm context' },
+            minStudies: { type: 'number', default: 5, description: 'Minimum number of studies for consensus' }
+          },
+          required: ['question']
+        }
+      },
+      {
+        name: 'identify_research_gaps_consensus',
+        description: 'Identify research gaps and emerging topics using consensus data',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            field: { type: 'string', description: 'Research field' },
+            topics: { type: 'array', items: { type: 'string' }, description: 'Topics to analyze for gaps' },
+            yearsBack: { type: 'number', default: 5, description: 'Years to look back for trend analysis' }
+          },
+          required: ['field', 'topics']
+        }
+      },
+      {
+        name: 'get_methodology_recommendations',
+        description: 'Get evidence-based recommendations for research methodology',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            researchQuestion: { type: 'string', description: 'The research question' },
+            discipline: { type: 'string', description: 'Academic discipline' },
+            paradigm: { type: 'string', description: 'Research paradigm' },
+            constraints: { type: 'array', items: { type: 'string' }, description: 'Research constraints (time, resources, etc.)' }
+          },
+          required: ['researchQuestion', 'discipline']
+        }
+      },
+      {
+        name: 'validate_consensus_connection',
+        description: 'Validate Consensus API connection and functionality',
+        inputSchema: {
+          type: 'object',
+          properties: {}
+        }
+      }
     ];
   }
 
@@ -897,7 +1375,7 @@ Let's start by processing the PDF. Please execute process_academic_pdf with:
   async run() {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    console.error('🔬 Autonomous Scientist MCP Server v6.0 running on stdio');
+    console.error('🔬 Autonomous Scientist MCP Server v6.1 running on stdio with Cognitive Architecture');
   }
 
   async shutdown() {
