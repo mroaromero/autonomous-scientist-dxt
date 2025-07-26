@@ -4,18 +4,20 @@
   "description": "Autonomous Research System for Social Sciences and Humanities - Claude Desktop Extension",
   "main": "dist/index.js",
   "scripts": {
-    "build": "echo 'Using JavaScript files directly'",
-    "bundle": "if not exist dist mkdir dist && copy server\\index.js dist\\bundle.js",
-    "dev": "node server/index.js",
-    "start": "node server/index.js",
+    "clean": "rm -rf dist",
+    "build": "npm run clean && tsc",
+    "build:webpack": "npm run clean && webpack --env NODE_ENV=production",
+    "bundle": "npm run clean && webpack --env NODE_ENV=production --env package=true",
+    "dev": "tsc && node dist/index.js",
+    "start": "node dist/index.js",
     "test": "node tests/unit/server.test.js && node tests/integration/tools.test.js",
     "test:unit": "node tests/unit/server.test.js",
     "test:integration": "node tests/integration/tools.test.js",
     "test:watch": "echo 'Test watch mode not implemented yet'",
     "lint": "echo 'Linting disabled for now'",
-    "pack": "echo 'Packing extension...' && echo 'Note: Install @anthropic-ai/dxt globally first: npm install -g @anthropic-ai/dxt'",
+    "pack": "dxt pack",
     "install-cli": "npm install -g @anthropic-ai/dxt",
-    "prepare-dxt": "npm run build && npm run pack",
+    "prepare-dxt": "npm run bundle && npm run pack",
     "setup": "node scripts/auto-install.js",
     "configure-apis": "node scripts/configure-apis.js",
     "install-mcps": "node scripts/mcp-installer.js",
@@ -61,7 +63,10 @@
     "sinon": "^17.0.0",
     "nyc": "^15.1.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.0.0"
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.0.0",
+    "webpack": "^5.90.0",
+    "webpack-cli": "^5.1.4"
   },
   "engines": {
     "node": ">=18.0.0"

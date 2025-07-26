@@ -31,10 +31,10 @@
   "icon": "assets/icon.svg",
   "server": {
     "type": "node",
-    "entry_point": "server/index-simple.js",
+    "entry_point": "dist/bundle.js",
     "mcp_config": {
       "command": "node",
-      "args": ["${__dirname}/server/index-simple.js"],
+      "args": ["${__dirname}/dist/bundle.js"],
       "env": {
         "NODE_ENV": "production",
         "EXTENSION_PATH": "${__dirname}",
@@ -168,88 +168,10 @@
     "claude_desktop": ">=0.8.0",
     "platforms": ["win32", "darwin", "linux"]
   },
-  "hardware_requirements": {
-    "minimum": {
-      "cpu": "Intel i3-12100F or AMD Ryzen 5 3600 equivalent",
-      "memory_gb": 16,
-      "storage_gb": 10,
-      "gpu": "Not required (CPU-based OCR and processing)"
-    },
-    "recommended": {
-      "cpu": "Intel i5-12400F or AMD Ryzen 7 5700X",
-      "memory_gb": 32,
-      "storage_gb": 50,
-      "gpu": "Any modern GPU for potential future ML features"
-    },
-    "notes": [
-      "Optimized for Intel i3-12100F + 16GB DDR4 systems",
-      "OCR processing is CPU-intensive, more cores improve performance",
-      "Large cache recommended for frequent PDF processing",
-      "Network connection required for API access"
-    ]
-  },
-  "update_url": "https://github.com/manuel-roa/autonomous-scientist-dxt/releases/latest/download/manifest.json",
-  "screenshots": [
-    "assets/screenshots/main-interface.png",
-    "assets/screenshots/literature-search.png",
-    "assets/screenshots/pdf-processing.png",
-    "assets/screenshots/latex-generation.png"
-  ],
-  "installation_wizard": {
-    "enabled": true,
-    "script": "scripts/setup-wizard.js",
-    "steps": [
-      {
-        "id": "welcome",
-        "title": "Welcome to Autonomous Scientist",
-        "description": "This wizard will guide you through the initial setup",
-        "type": "info"
-      },
-      {
-        "id": "system_check",
-        "title": "System Requirements Check",
-        "description": "Validating your system meets minimum requirements",
-        "type": "validation",
-        "script": "scripts/system-validator.js"
-      },
-      {
-        "id": "api_setup",
-        "title": "Research API Configuration",
-        "description": "Configure access to academic databases",
-        "type": "configuration",
-        "script": "scripts/configure-apis.js"
-      },
-      {
-        "id": "workspace",
-        "title": "Research Workspace Setup",
-        "description": "Choose your research workspace directory",
-        "type": "directory_selection",
-        "default": "${HOME}/Documents/Research"
-      },
-      {
-        "id": "discipline",
-        "title": "Primary Research Discipline",
-        "description": "Select your main research area for optimized analysis",
-        "type": "selection",
-        "options": ["psychology", "neuroscience", "education", "sociology", "anthropology", "philosophy", "political-science", "international-relations"]
-      },
-      {
-        "id": "completion",
-        "title": "Setup Complete",
-        "description": "Your Autonomous Scientist is ready to use!",
-        "type": "completion"
-      }
-    ]
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/manuel-roa/autonomous-scientist-dxt"
   },
   "homepage": "https://github.com/manuel-roa/autonomous-scientist-dxt#readme",
-  "support": {
-    "documentation": "https://github.com/manuel-roa/autonomous-scientist-dxt/wiki",
-    "issues": "https://github.com/manuel-roa/autonomous-scientist-dxt/issues",
-    "email": "manuel.roa@researcher.com"
-  },
-  "changelog_url": "https://github.com/manuel-roa/autonomous-scientist-dxt/blob/main/CHANGELOG.md"
+  "support": "https://github.com/manuel-roa/autonomous-scientist-dxt/issues"
 }

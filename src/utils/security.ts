@@ -38,7 +38,7 @@ export class SecurityManager {
     
     if (fs.existsSync(keyFile)) {
       // Read existing key
-      const keyData = await fs.readFile(keyFile);
+      const keyData = await fs.readFile(keyFile, 'utf8');
       this.masterKey = Buffer.from(keyData, 'hex');
     } else {
       // Generate new master key

@@ -23,7 +23,19 @@
       "Bash(rm:*)",
       "Bash(npm outdated:*)",
       "Bash(find:*)",
-      "Bash(git init:*)"
+      "Bash(git init:*)",
+      "Bash(gh repo create:*)",
+      "Bash(git remote add:*)",
+      "Bash(where gh)",
+      "Bash(git remote set-url:*)",
+      "Bash(npm run build:*)",
+      "Bash(dxt:*)",
+      "Bash(npm run prepare-dxt:*)",
+      "Bash(grep:*)",
+      "Bash(unzip:*)",
+      "Bash(npm run bundle:*)",
+      "Bash(npm run pack:*)",
+      "Bash(npm run diagnose:*)"
     ],
     "deny": []
   }
