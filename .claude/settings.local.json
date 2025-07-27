@@ -54,7 +54,8 @@
       "Bash(cat:*)",
       "Bash(npm run validate:*)",
       "Bash(touch:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(npm run:*)"
     ],
     "deny": []
   }

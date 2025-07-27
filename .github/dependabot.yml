@@ -1,0 +1,65 @@
+version: 2
+updates:
+  # NPM package updates
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "mroaromero"
+    assignees:
+      - "mroaromero"
+    commit-message:
+      prefix: "📦"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "academic-research"
+    # Academic research specific configuration
+    allow:
+      # Production dependencies critical for academic features
+      - dependency-type: "direct:production"
+        update-type: "version-update:semver-patch"
+      - dependency-type: "direct:production"
+        update-type: "version-update:semver-minor"
+      # Development dependencies for build optimization
+      - dependency-type: "direct:development"
+        update-type: "version-update:semver-patch"
+      - dependency-type: "direct:development"
+        update-type: "version-update:semver-minor"
+      # Security updates (all types)
+      - dependency-type: "all"
+        update-type: "security-update"
+    ignore:
+      # Ignore major version updates for stability
+      - dependency-name: "*"
+        update-type: "version-update:semver-major"
+      # Specific academic dependencies to control manually
+      - dependency-name: "tesseract.js"
+        update-type: "version-update:semver-major"
+      - dependency-name: "pdf-parse"
+        update-type: "version-update:semver-major"
+      - dependency-name: "@modelcontextprotocol/sdk"
+        update-type: "version-update:semver-major"
+
+  # GitHub Actions updates
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "mroaromero"
+    commit-message:
+      prefix: "🔧"
+      include: "scope"
+    labels:
+      - "github-actions"
+      - "workflow-automation"
