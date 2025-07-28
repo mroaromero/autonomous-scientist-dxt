@@ -1,7 +1,8 @@
 {
   "name": "autonomous-scientist-extension",
-  "version": "6.1.0",
+  "version": "6.2.0",
   "description": "Autonomous Research System for Social Sciences and Humanities - Claude Desktop Extension",
+  "type": "module",
   "main": "dist/index.js",
   "scripts": {
     "clean": "rm -rf dist",
@@ -10,8 +11,9 @@
     "bundle": "npm run clean && webpack --env NODE_ENV=production --env package=true",
     "dev": "tsc && node dist/index.js",
     "start": "node dist/index.js",
-    "test": "node tests/unit/server.test.js && node tests/integration/tools.test.js",
-    "test:unit": "node tests/unit/server.test.js",
+    "test": "mocha tests/unit/compiled-server.test.js tests/integration/tools.test.js --timeout 10000",
+    "test:unit": "mocha tests/unit/compiled-server.test.js --timeout 5000",
+    "test:legacy": "mocha tests/unit/server.test.js --timeout 5000",
     "test:integration": "node tests/integration/tools.test.js",
     "test:watch": "echo 'Test watch mode not implemented yet'",
     "lint": "echo 'Linting disabled for now'",

@@ -4,6 +4,10 @@
  */
 
 const assert = require('assert');
+
+// Import test setup first to initialize globals
+require('../setup.js');
+
 const { 
     TEST_CONFIG, 
     createMockServer, 

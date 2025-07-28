@@ -1,0 +1,37 @@
+{
+  "mcpServers": {
+    "autonomous-scientist-dxt": {
+      "command": "node",
+      "args": [
+        "C:\\Users\\Admin\\Desktop\\LOOM\\Proyectos_MCP_Claude\\autonomous-scientist-dxt\\dist\\enhanced-mcp-server-simple.js"
+      ],
+      "env": {
+        "NEWSAPI_KEY": "efeb07d71d924059983a02797a18a62e",
+        "USER_CONFIG_PRIMARY_DISCIPLINE": "psychology",
+        "USER_CONFIG_DEFAULT_CITATION_STYLE": "apa",
+        "USER_CONFIG_CACHE_SIZE_GB": "5",
+        "USER_CONFIG_MAX_CONCURRENT_PDFS": "2",
+        "USER_CONFIG_OCR_LANGUAGES": "en,es,de,fr,it,pt,la",
+        "USER_CONFIG_ENABLE_ADVANCED_FEATURES": "true",
+        "USER_CONFIG_WORKSPACE_DIRECTORY": "C:\\Users\\Admin\\Documents\\Research"
+      }
+    }
+  },
+  "globalShortcut": "Ctrl+Shift+S",
+  "logging": {
+    "level": "info",
+    "file": "C:\\Users\\Admin\\Desktop\\LOOM\\Proyectos_MCP_Claude\\autonomous-scientist-dxt\\logs\\claude-desktop.log"
+  },
+  "features": {
+    "enableAutomaticUpdates": true,
+    "enableTelemetry": false,
+    "maxMemoryUsage": "8GB",
+    "concurrentConnections": 3
+  },
+  "validation": {
+    "validateServerHealth": true,
+    "healthCheckInterval": 300000,
+    "retryAttempts": 3,
+    "timeoutMs": 30000
+  }
+}

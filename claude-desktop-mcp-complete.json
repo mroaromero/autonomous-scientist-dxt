@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "autonomous-scientist-enhanced": {
+      "command": "node",
+      "args": [
+        "C:\\Users\\Admin\\Desktop\\LOOM\\Proyectos_MCP_Claude\\autonomous-scientist-dxt\\dist\\enhanced-mcp-server-simple.js"
+      ],
+      "env": {
+        "NEWSAPI_KEY": "efeb07d71d924059983a02797a18a62e",
+        "NODE_ENV": "production",
+        "DEBUG": "false"
+      }
+    }
+  }
+}
