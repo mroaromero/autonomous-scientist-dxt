@@ -42,12 +42,23 @@ class PDFProcessor {
     };
 
     try {
-      // Validate file exists and get size
-      if (!await fs.pathExists(options.file_path)) {
-        throw new Error(`PDF file not found: ${options.file_path}`);
+      // Security: Path Traversal Check
+      if (!options._workspace || !options.file_path) {
+        throw new Error('Workspace directory or file path is missing.');
+      }
+      const workspaceDir = path.resolve(options._workspace);
+      const userPath = path.resolve(workspaceDir, options.file_path);
+
+      if (!userPath.startsWith(workspaceDir)) {
+        throw new Error(`Path traversal detected. Access to '${options.file_path}' is forbidden.`);
       }
 
-      const fileStats = await fs.stat(options.file_path);
+      // Validate file exists and get size
+      if (!await fs.pathExists(userPath)) {
+        throw new Error(`PDF file not found in workspace: ${options.file_path}`);
+      }
+
+      const fileStats = await fs.stat(userPath);
       const fileSizeMB = fileStats.size / (1024 * 1024);
       
       console.error(`📄 Processing PDF: ${path.basename(options.file_path)} (${fileSizeMB.toFixed(1)}MB)`);
@@ -67,7 +78,7 @@ class PDFProcessor {
       });
 
       // Read PDF file
-      const pdfBuffer = await fs.readFile(options.file_path);
+      const pdfBuffer = await fs.readFile(userPath);
       
       // Parse PDF with pdf-parse
       const pdfData = await pdfParse(pdfBuffer, {
